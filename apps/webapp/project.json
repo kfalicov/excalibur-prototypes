@@ -1,0 +1,54 @@
+{
+  "name": "webapp",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/webapp/src",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project webapp --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "target": "web",
+        "outputPath": "dist/apps/webapp",
+        "compiler": "swc",
+        "main": "apps/webapp/src/main.ts",
+        "tsConfig": "apps/webapp/tsconfig.app.json",
+        "webpackConfig": "apps/webapp/webpack.config.js",
+        "assets": ["apps/webapp/src/assets"],
+        "index": "apps/webapp/src/index.html",
+        "styles": ["apps/webapp/src/styles.css"],
+        "scripts": []
+      },
+      "configurations": {
+        "production": {
+          "optimization": true,
+          "outputHashing": "all",
+          "sourceMap": false,
+          "namedChunks": false,
+          "extractLicenses": true,
+          "vendorChunk": false,
+          "fileReplacements": [
+            {
+              "replace": "apps/client/src/environments/environment.ts",
+              "with": "apps/client/src/environments/environment.prod.ts"
+            }
+          ]
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/webpack:dev-server",
+      "options": {
+        "buildTarget": "webapp:build"
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "webapp:build:production"
+        }
+      }
+    }
+  }
+}
