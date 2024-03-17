@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@nx/devkit": "18.0.7",
     "excalibur": "0.30.0-alpha.964",
     "tslib": "^2.3.0"
   },
@@ -19,6 +20,7 @@
     "@nx/eslint-plugin": "18.1.0-canary.20240302-8bde48f",
     "@nx/jest": "18.1.0-canary.20240302-8bde48f",
     "@nx/js": "18.1.0-canary.20240302-8bde48f",
+    "@nx/plugin": "18.0.7",
     "@nx/web": "18.1.0-canary.20240302-8bde48f",
     "@nx/webpack": "18.1.0-canary.20240302-8bde48f",
     "@swc-node/register": "~1.8.0",
@@ -37,6 +39,7 @@
     "jest": "^29.4.1",
     "jest-environment-jsdom": "^29.4.1",
     "prettier": "^2.6.2",
+    "raw-loader": "^4.0.2",
     "swc-loader": "0.1.15",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",

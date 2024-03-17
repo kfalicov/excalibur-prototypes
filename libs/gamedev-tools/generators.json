@@ -1,0 +1,9 @@
+{
+  "generators": {
+    "shader": {
+      "factory": "./src/generators/shader/generator",
+      "schema": "./src/generators/shader/schema.json",
+      "description": "Create boilerplate for fragment/vertex shader code to be shared between game prototypes"
+    }
+  }
+}

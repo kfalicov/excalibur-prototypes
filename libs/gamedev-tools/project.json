@@ -1,0 +1,41 @@
+{
+  "name": "gamedev-tools",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/gamedev-tools/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/gamedev-tools",
+        "main": "libs/gamedev-tools/src/index.ts",
+        "tsConfig": "libs/gamedev-tools/tsconfig.lib.json",
+        "assets": [
+          "libs/gamedev-tools/*.md",
+          {
+            "input": "./libs/gamedev-tools/src",
+            "glob": "**/!(*.ts)",
+            "output": "./src"
+          },
+          {
+            "input": "./libs/gamedev-tools/src",
+            "glob": "**/*.d.ts",
+            "output": "./src"
+          },
+          {
+            "input": "./libs/gamedev-tools",
+            "glob": "generators.json",
+            "output": "."
+          },
+          {
+            "input": "./libs/gamedev-tools",
+            "glob": "executors.json",
+            "output": "."
+          }
+        ]
+      }
+    }
+  },
+  "tags": []
+}
