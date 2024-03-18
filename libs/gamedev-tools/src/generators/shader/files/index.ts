@@ -1,2 +1,5 @@
-export { default as fragmentSource } from "./fragment.glsl";
-export { default as vertexSource } from "./vertex.glsl";
+import fragmentSource from './src/frag.glsl';
+import vertexSource from './src/vert.glsl';
+
+export { fragmentSource, vertexSource };
+

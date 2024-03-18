@@ -3,5 +3,18 @@
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
   "sourceRoot": "libs/shader/turbulence/src",
-  "targets": {}
+  "targets": {
+    "build": {
+      "executor": "@nx/webpack:webpack",
+      "options": {
+        "outputPath": "dist/libs/shader/turbulence",
+        "main": "libs/shader/turbulence/index.ts",
+        "tsConfig": "libs/shader/turbulence/tsconfig.lib.json",
+        "assets": [
+          "libs/shader/turbulence/src/*.glsl"
+        ],
+        "webpackConfig": "libs/shader/turbulence/webpack.config.js"
+      }
+    }
+  }
 }
