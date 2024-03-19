@@ -3,7 +3,7 @@ module.exports = {
     rules: [
       {
         test: /\.glsl$/,
-        use: 'raw-loader',
+        use: 'asset/source',
       },
     ],
   },

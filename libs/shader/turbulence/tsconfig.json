@@ -2,12 +2,13 @@
     "extends": "../../../tsconfig.base.json",
     "compilerOptions": {
         "module": "commonjs",
+        "declaration": true,
     },
-    "files": [],
-    "include": [],
-    "references": [
-        {
-            "path": "./tsconfig.lib.json"
-        },
-    ]
+    "files": [
+        "index.ts",
+        "typings.d.ts"
+    ],
+    "include": [
+        "**/*.(ts|js)"
+    ],
 }

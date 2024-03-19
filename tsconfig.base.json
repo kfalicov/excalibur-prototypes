@@ -19,7 +19,7 @@
     "baseUrl": ".",
     "paths": {
       "@shader/turbulence": [
-        "libs/shader/turbulence/index.ts"
+        "dist/libs/shader/turbulence/"
       ],
       "gamedev-tools": [
         "libs/gamedev-tools/src/index.ts"

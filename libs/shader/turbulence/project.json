@@ -9,10 +9,7 @@
       "options": {
         "outputPath": "dist/libs/shader/turbulence",
         "main": "libs/shader/turbulence/index.ts",
-        "tsConfig": "libs/shader/turbulence/tsconfig.lib.json",
-        "assets": [
-          "libs/shader/turbulence/src/*.glsl"
-        ],
+        "tsConfig": "libs/shader/turbulence/tsconfig.json",
         "webpackConfig": "libs/shader/turbulence/webpack.config.js"
       }
     }
