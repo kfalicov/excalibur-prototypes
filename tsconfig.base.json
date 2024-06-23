@@ -10,31 +10,16 @@
     "importHelpers": true,
     "target": "es2015",
     "module": "esnext",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
+    "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@shader/turbulence": [
-        "dist/libs/shader/turbulence/"
-      ],
-      "gamedev-tools": [
-        "libs/gamedev-tools/src/index.ts"
-      ]
-    },
+      "@shader/turbulence": ["dist/libs/shader/turbulence/"],
+      "gamedev-tools": ["libs/gamedev-tools/src/index.ts"]
+    }
   },
-  "files": [
-    "./types/global.d.ts"
-  ],
-  "include": [
-    "**/*.ts",
-    "../*.d.ts",
-  ],
-  "exclude": [
-    "node_modules",
-    "tmp"
-  ]
+  "files": ["./types/global.d.ts"],
+  "include": ["**/*.ts", "../*.d.ts"],
+  "exclude": ["node_modules", "tmp"]
 }
