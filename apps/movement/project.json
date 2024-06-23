@@ -4,5 +4,6 @@
   "projectType": "application",
   "sourceRoot": "apps/movement/src",
   "tags": [],
+  "// targets": "to see all targets run: nx show project movement --web",
   "targets": {}
 }

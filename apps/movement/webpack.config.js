@@ -1,4 +1,4 @@
-const { NxWebpackPlugin } = require('@nx/webpack');
+const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
 const { join } = require('path');
 
 module.exports = {
@@ -8,8 +8,19 @@ module.exports = {
   devServer: {
     port: 4200,
   },
+  module: {
+    rules: [
+      {
+        test: /\.png$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[hash][ext][query]',
+        }
+      }
+    ]
+  },
   plugins: [
-    new NxWebpackPlugin({
+    new NxAppWebpackPlugin({
       tsConfig: './tsconfig.app.json',
       compiler: 'swc',
       main: './src/main.ts',
