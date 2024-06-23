@@ -8,6 +8,17 @@ module.exports = {
   devServer: {
     port: 4200,
   },
+  module: {
+    rules: [
+      {
+        test: /\.png$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[hash][ext][query]',
+        }
+      }
+    ]
+  },
   plugins: [
     new NxWebpackPlugin({
       tsConfig: './tsconfig.app.json',

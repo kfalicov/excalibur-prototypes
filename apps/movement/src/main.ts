@@ -5,6 +5,7 @@ import {
     ScreenDimension,
     Vector,
 } from 'excalibur';
+import { loader } from './app/resources/resources';
 import { MenuScene } from './app/scenes/menu';
 
 const computeScaling = (resolution: ScreenDimension): ScreenDimension => {
@@ -22,6 +23,7 @@ const game = new Engine({
     resolution: Resolution.GameBoyAdvance,
     viewport: computeScaling(Resolution.GameBoyAdvance),
     suppressHiDPIScaling: true,
+    // suppressPlayButton: true,
     displayMode: DisplayMode.Fixed,
     antialiasing: false,
     physics: {
@@ -46,6 +48,6 @@ const ro = new ResizeObserver((entries) => {
 ro.observe(document.body);
 
 game.add('menu', new MenuScene());
-game.start().then(() => {
+game.start(loader).then(() => {
     game.goToScene('menu');
 });

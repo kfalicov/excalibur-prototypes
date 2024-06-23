@@ -24,10 +24,14 @@
       "gamedev-tools": [
         "libs/gamedev-tools/src/index.ts"
       ]
-    }
+    },
   },
+  "files": [
+    "./types/global.d.ts"
+  ],
   "include": [
-    "**/*.ts"
+    "**/*.ts",
+    "../*.d.ts",
   ],
   "exclude": [
     "node_modules",
