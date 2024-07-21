@@ -3,6 +3,7 @@ import {
     Engine,
     Resolution,
     ScreenDimension,
+    SolverStrategy,
     Vector,
 } from 'excalibur';
 import { loader } from './app/resources/resources';
@@ -27,9 +28,15 @@ const game = new Engine({
     displayMode: DisplayMode.Fixed,
     antialiasing: false,
     physics: {
-        gravity: Vector.Zero,
+        gravity: new Vector(0, 1450),
+        solver: SolverStrategy.Arcade,
+        colliders: {
+            compositeStrategy: "separate"
+        }
     },
 });
+
+game.showDebug(true);
 
 /**
  * we don't care about the resize event, we only care about the performant callback
