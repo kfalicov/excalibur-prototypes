@@ -7,7 +7,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "excalibur": "0.30.0-alpha.964",
+    "excalibur": "0.30.0-alpha.1115",
     "tslib": "^2.6.2"
   },
   "devDependencies": {

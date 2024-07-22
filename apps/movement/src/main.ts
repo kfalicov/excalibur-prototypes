@@ -1,15 +1,15 @@
 import {
+    ContactSolveBias,
     DisplayMode,
     Engine,
     Resolution,
-    ScreenDimension,
     SolverStrategy,
-    Vector,
+    ViewportDimension
 } from 'excalibur';
 import { loader } from './app/resources/resources';
 import { MenuScene } from './app/scenes/menu';
 
-const computeScaling = (resolution: ScreenDimension): ScreenDimension => {
+const computeScaling = (resolution: ViewportDimension): ViewportDimension => {
     const scale = Math.min(
         Math.floor(window.innerWidth / resolution.width),
         Math.floor(window.innerHeight / resolution.height)
@@ -28,12 +28,18 @@ const game = new Engine({
     displayMode: DisplayMode.Fixed,
     antialiasing: false,
     physics: {
-        gravity: new Vector(0, 1450),
+        arcade: {
+            contactSolveBias: ContactSolveBias.VerticalFirst,
+        },
         solver: SolverStrategy.Arcade,
         colliders: {
             compositeStrategy: "separate"
+        },
+        continuous: {
+            checkForFastBodies: true
         }
     },
+    maxFps: 60
 });
 
 game.showDebug(true);

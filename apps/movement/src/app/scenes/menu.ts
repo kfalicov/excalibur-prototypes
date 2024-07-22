@@ -10,6 +10,7 @@ class MenuScene extends Scene {
     new Shader({ fragmentSource, vertexSource, gl });
     this.add(new PlayerActor());
     this.add(new Terrain());
+    this.add(new Terrain({ x: 204, y: 100, width: 8, height: 140 }));
     this.world.add(new ControlSystem(this.world, this.engine.input));
   }
 }

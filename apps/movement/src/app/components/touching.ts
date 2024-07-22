@@ -1,4 +1,4 @@
-import { Actor, CollisionContact, CollisionType, Component, Side } from 'excalibur';
+import { Actor, CollisionContact, CollisionType, Component, Side, Vector } from 'excalibur';
 
 /**
  * Tracks which entities are touching this entity currently.
@@ -7,7 +7,10 @@ import { Actor, CollisionContact, CollisionType, Component, Side } from 'excalib
  * while passives will contain passive entities.
  */
 export class TouchingComponent extends Component {
+    declare owner: Actor;
     type = 'touching';
+
+    origin: Vector = Vector.Zero;
 
     private contacts = new Map<
         string,
@@ -30,9 +33,12 @@ export class TouchingComponent extends Component {
     passives = new Set<Actor>()
 
     onAdd(owner: Actor): void {
+        super.onAdd?.(owner);
+        this.origin = new Vector(owner.pos.x, owner.pos.y);
         // collect up all of the collisionstart/end events for each frame
         owner.on('collisionstart', (ev) => {
             if (ev.other.collider) {
+                // console.log(ev.contact.colliderA.worldPos, ev.contact.colliderB.worldPos)
                 if (ev.other.body?.collisionType === CollisionType.Passive) {
                     this.passives.add(ev.other)
                 } else {

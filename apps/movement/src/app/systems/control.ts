@@ -38,7 +38,7 @@ class ControlSystem extends System {
     this.input = input;
   }
 
-  public update(delta) {
+  public update(elapsedMs) {
     if (!this.input) return;
     /**
      * get user controls intent
@@ -59,6 +59,7 @@ class ControlSystem extends System {
       const grounded = touching.Bottom.size > 0;
 
       const acc = this.computeAcceleration(mobility, intent);
+      grounded ? (acc.y = 0) : (acc.y = mobility.gravity);
 
       body.acc = acc;
       if (grounded) {

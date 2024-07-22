@@ -3,7 +3,7 @@ import {
     CollisionType,
     Color
 } from 'excalibur';
-import { CollisionGroup } from '../systems/collision';
+import { CollisionGroup } from '../utils/collision';
 
 class Terrain extends Actor {
     constructor({ x = 120, y = 120, width = 128, height = 16 }: { x?: number, y?: number, width?: number, height?: number } = {}) {

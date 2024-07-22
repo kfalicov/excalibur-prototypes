@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   excalibur:
-    specifier: 0.30.0-alpha.964
-    version: 0.30.0-alpha.964
+    specifier: 0.30.0-alpha.1115
+    version: 0.30.0-alpha.1115
   tslib:
     specifier: ^2.6.2
     version: 2.6.2
@@ -4302,11 +4302,6 @@ packages:
       browserslist: 4.23.0
     dev: true
 
-  /core-js@3.36.0:
-    resolution: {integrity: sha512-mt7+TUBbTFg5+GngsAxeKBTl5/VS0guFeJacYge9OmHb+m058UwwIm41SE9T4Den7ClatV57B6TYTuJ0CX1MAw==}
-    requiresBuild: true
-    dev: false
-
   /core-util-is@1.0.2:
     resolution: {integrity: sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==}
     dev: true
@@ -5162,10 +5157,8 @@ packages:
     engines: {node: '>=0.8.x'}
     dev: true
 
-  /excalibur@0.30.0-alpha.964:
-    resolution: {integrity: sha512-ncbo/DZV2EqwYC98czEJxdLHy0FGE7GqKm4nbrjlY1xFBP/qHKvv2NiOjt9R4Jd7jLq45RelI9TCV4RV8HDu4Q==}
-    dependencies:
-      core-js: 3.36.0
+  /excalibur@0.30.0-alpha.1115:
+    resolution: {integrity: sha512-kwwQ98hY/6O8dKw4tmwbz56BcqVeF3TxOw/Yucp2tkHuJjyzX7yGdvD/axUTR+aYjc1lUNIxRSN3LZAuCsnClw==}
     dev: false
 
   /execa@0.7.0:

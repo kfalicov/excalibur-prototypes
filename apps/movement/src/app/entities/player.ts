@@ -2,11 +2,11 @@ import {
   Actor,
   CollisionType,
   Color,
-  Engine,
+  Engine
 } from 'excalibur';
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
-import { CollisionGroup } from '../systems/collision';
+import { CollisionGroup } from '../utils/collision';
 
 class PlayerActor extends Actor {
   constructor({ x = 120, y = 80 }: { x?: number, y?: number } = {}) {
@@ -28,6 +28,15 @@ class PlayerActor extends Actor {
     this.addComponent(new MobilityComponent());
     this.addComponent(new TouchingComponent());
   }
+
+  // onPreCollisionResolve(self: Collider, other: Collider, side: Side, contact: CollisionContact): void {
+  //   if (side === Side.Bottom) {
+  //     self.owner.get(BodyComponent).vel.y = 0;
+  //   }
+  //   if (side === Side.Left || side === Side.Right) {
+  //     self.owner.get(BodyComponent).vel.x = 0;
+  //   }
+  // }
 }
 
 export { PlayerActor };
