@@ -1,14 +1,10 @@
 import {
   Actor,
-  BodyComponent,
-  CollisionType,
-  Color,
-  Physics,
-  Vector,
+  Color
 } from 'excalibur';
-import { ControllableComponent } from '../systems/control';
+import { DraggableComponent } from '../systems/control';
 
-class PlayerActor extends Actor {
+class CardActor extends Actor {
   constructor() {
     super({
       x: 120,
@@ -20,8 +16,9 @@ class PlayerActor extends Actor {
       color: Color.Black,
     });
     this.body.friction = 0.1;
-    this.addComponent(new ControllableComponent());
+    this.addComponent(new DraggableComponent());
   }
 }
 
-export { PlayerActor };
+export { CardActor };
+

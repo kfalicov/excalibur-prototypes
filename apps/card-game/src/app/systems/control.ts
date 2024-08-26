@@ -1,7 +1,6 @@
 import {
   BodyComponent,
   Component,
-  Input,
   InputHost,
   Keys,
   MotionComponent,
@@ -11,17 +10,17 @@ import {
   SystemType,
   TransformComponent,
   Vector,
-  World,
+  World
 } from 'excalibur';
 
-class ControllableComponent extends Component {
+class DraggableComponent extends Component {
   constructor() {
     super();
   }
 }
 
-class ControlSystem extends System {
-  query: Query<typeof ControllableComponent>;
+class DndSystem extends System {
+  query: Query<typeof DraggableComponent>;
   input: InputHost;
   public systemType = SystemType.Update;
   public priority = SystemPriority.Highest;
@@ -31,7 +30,7 @@ class ControlSystem extends System {
     this.query = world.query([
       TransformComponent,
       MotionComponent,
-      ControllableComponent,
+      DraggableComponent,
     ]);
     this.input = input;
   }
@@ -54,4 +53,5 @@ class ControlSystem extends System {
   }
 }
 
-export { ControlSystem, ControllableComponent };
+export { DndSystem, DraggableComponent };
+

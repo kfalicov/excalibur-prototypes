@@ -1,7 +1,7 @@
 // import { fragmentSource, vertexSource } from '@shader/turbulence';
-import { Scene, Shader } from 'excalibur';
-import { PlayerActor } from '../entities/player';
-import { ControlSystem } from '../systems/control';
+import { Scene } from 'excalibur';
+import { CardActor } from '../entities/card';
+import { DndSystem } from '../systems/control';
 
 class MenuScene extends Scene {
   onInitialize(): void {
@@ -10,9 +10,10 @@ class MenuScene extends Scene {
       throw new Error('WebGL2 not supported');
     }
     // new Shader({ fragmentSource, vertexSource, gl });
-    this.add(new PlayerActor());
-    this.world.add(new ControlSystem(this.world, this.engine.input));
+    this.add(new CardActor());
+    this.world.add(new DndSystem(this.world, this.engine.input));
   }
 }
 
 export { MenuScene };
+
