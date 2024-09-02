@@ -12,8 +12,11 @@ import {
   World
 } from 'excalibur';
 
+/**
+ * Add this component to an entity to make it draggable via the pointer.
+ * Remove it to disable dragging
+ */
 class DraggableComponent extends Component {
-  _draggable = true;
   grabbed = false;
   offset: Vector = new Vector(0, 0);
   constructor() {
@@ -24,25 +27,19 @@ class DraggableComponent extends Component {
     const transform = owner.get(TransformComponent);
     //@ts-expect-error "on" is weakly typed
     owner.on('pointerdown', (evt: PointerEvent) => {
-      if (!this.draggable) return;
       this.grabbed = true;
       this.offset = new Vector(evt.worldPos.x - transform.globalPos.x,
         evt.worldPos.y - transform.globalPos.y);
     });
     //@ts-expect-error "on" is weakly typed
     owner.on('pointerup', (evt: PointerEvent) => {
-      if (!this.draggable) return;
       this.grabbed = false;
     });
   }
-  set draggable(val: boolean) {
-    this._draggable = val;
-    if (!val) {
-      this.grabbed = false;
-    }
-  }
-  get draggable() {
-    return this._draggable;
+
+  onRemove(owner: Entity) {
+    owner.off('pointerdown');
+    owner.off('pointerup');
   }
 }
 
