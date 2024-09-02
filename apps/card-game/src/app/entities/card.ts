@@ -15,10 +15,10 @@ class CardActor extends Actor {
       // color constants
       color: Color.Black,
     });
-    this.body.friction = 0.1;
     this.addComponent(new DraggableComponent());
   }
 }
+
 
 export { CardActor };
 

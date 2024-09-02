@@ -1,9 +1,8 @@
 import {
-  BodyComponent,
   Component,
+  Entity,
   InputHost,
-  Keys,
-  MotionComponent,
+  PointerEvent,
   Query,
   System,
   SystemPriority,
@@ -14,8 +13,36 @@ import {
 } from 'excalibur';
 
 class DraggableComponent extends Component {
+  _draggable = true;
+  grabbed = false;
+  offset: Vector = new Vector(0, 0);
   constructor() {
     super();
+  }
+
+  onAdd(owner: Entity) {
+    const transform = owner.get(TransformComponent);
+    //@ts-expect-error "on" is weakly typed
+    owner.on('pointerdown', (evt: PointerEvent) => {
+      if (!this.draggable) return;
+      this.grabbed = true;
+      this.offset = new Vector(evt.worldPos.x - transform.globalPos.x,
+        evt.worldPos.y - transform.globalPos.y);
+    });
+    //@ts-expect-error "on" is weakly typed
+    owner.on('pointerup', (evt: PointerEvent) => {
+      if (!this.draggable) return;
+      this.grabbed = false;
+    });
+  }
+  set draggable(val: boolean) {
+    this._draggable = val;
+    if (!val) {
+      this.grabbed = false;
+    }
+  }
+  get draggable() {
+    return this._draggable;
   }
 }
 
@@ -28,27 +55,20 @@ class DndSystem extends System {
   constructor(world: World, input: InputHost) {
     super();
     this.query = world.query([
-      TransformComponent,
-      MotionComponent,
       DraggableComponent,
     ]);
     this.input = input;
   }
 
-  public update(delta: number) {
+  public update() {
     if (!this.input) return;
-    const up = this.input.keyboard.isHeld(Keys.W);
-    const down = this.input.keyboard.isHeld(Keys.S);
-    const left = this.input.keyboard.isHeld(Keys.A);
-    const right = this.input.keyboard.isHeld(Keys.D);
-
-    const x = (right ? 1 : 0) - (left ? 1 : 0);
-    const y = (down ? 1 : 0) - (up ? 1 : 0);
+    const { x, y } = this.input.pointers.currentFramePointerCoords.get(0)?.worldPos ?? { x: 0, y: 0 };
 
     for (const entity of this.query.entities) {
-      const body = entity.get(BodyComponent);
-      body.acc = new Vector(x, y).clampMagnitude(1).scale(500);
-      body.vel.scaleEqual(0.92);
+      const drag = entity.get(DraggableComponent);
+      const transform = entity.get(TransformComponent);
+      if (!transform || !drag.grabbed) continue;
+      transform.globalPos = new Vector(x - drag.offset.x, y - drag.offset.y);
     }
   }
 }
