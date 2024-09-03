@@ -2,20 +2,18 @@ import {
   Actor,
   Color
 } from 'excalibur';
-import { DraggableComponent } from '../systems/control';
 
 class CardActor extends Actor {
-  constructor() {
+  constructor(x: number, y: number) {
     super({
-      x: 120,
-      y: 80,
-      width: 20,
-      height: 20,
+      x,
+      y,
+      width: 5 * 10,
+      height: 7 * 10,
       // Let's give it some color with one of the predefined
       // color constants
       color: Color.Black,
     });
-    this.addComponent(new DraggableComponent());
   }
 }
 
