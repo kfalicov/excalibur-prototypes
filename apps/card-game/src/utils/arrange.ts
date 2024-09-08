@@ -19,7 +19,7 @@ import { ActionsComponent, EasingFunctions, Entity, Vector } from "excalibur";
 const arrange = (entities: Entity[], start: Vector, end: Vector) => {
     entities.forEach((entity, i) => {
         const pos = end.sub(start).scale(i / (entities.length - 1)).add(start);
-        entity.get(ActionsComponent)?.easeTo(pos, 400, EasingFunctions.EaseOutQuad);
+        entity.get(ActionsComponent)?.delay(i * 50).easeTo(pos, 400, EasingFunctions.EaseOutQuad);
     });
 
 }

@@ -1,6 +1,7 @@
 import {
   Actor,
-  Color
+  ColliderComponent,
+  Entity
 } from 'excalibur';
 
 class CardActor extends Actor {
@@ -8,12 +9,16 @@ class CardActor extends Actor {
     super({
       x,
       y,
-      width: 5 * 10,
-      height: 7 * 10,
       // Let's give it some color with one of the predefined
       // color constants
-      color: Color.Black,
+      // color: Color.Black,
     });
+    const { width, height } = this.scene?.engine.screen.resolution ?? {};
+    console.log(width, height);
+    this.get(ColliderComponent).useBoxCollider(5 * 20, 7 * 20);
+  }
+  static resize(card: Entity, width: number) {
+    card.get(ColliderComponent).useBoxCollider(width, width / 5 * 7);
   }
 }
 

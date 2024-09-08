@@ -36,3 +36,5 @@ game.add('menu', new MenuScene());
 game.start(loader).then(() => {
   game.goToScene('menu');
 });
+
+game.showDebug(true)
