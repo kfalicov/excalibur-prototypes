@@ -1,4 +1,4 @@
-import { Actor, CollisionContact, CollisionType, Component, Side, Vector } from 'excalibur';
+import { Actor, CollisionContact, CollisionType, Component, Entity, Side, Vector } from 'excalibur';
 
 /**
  * Tracks which entities are touching this entity currently.
@@ -16,7 +16,7 @@ export class TouchingComponent extends Component {
         string,
         {
             contact: CollisionContact
-            actor: Actor
+            actor: Entity
             side: Side
         }
     >();
@@ -30,23 +30,23 @@ export class TouchingComponent extends Component {
      * Entities that are touching this entity but are not solid. They are
      * not tracked by side because they can move through the entity.
      */
-    passives = new Set<Actor>()
+    passives = new Set<Entity>()
 
     onAdd(owner: Actor): void {
         super.onAdd?.(owner);
         this.origin = new Vector(owner.pos.x, owner.pos.y);
         // collect up all of the collisionstart/end events for each frame
         owner.on('collisionstart', (ev) => {
-            if (ev.other.collider) {
-                // console.log(ev.contact.colliderA.worldPos, ev.contact.colliderB.worldPos)
-                if (ev.other.body?.collisionType === CollisionType.Passive) {
-                    this.passives.add(ev.other)
+            if (ev.other) {
+                //@ts-expect-error body has to exist in order for this event to have happened
+                if (ev.self.owner.body?.collisionType === CollisionType.Passive) {
+                    this.passives.add(ev.other.owner)
                 } else {
                     const side = ev.side;
 
                     this.contacts.set(ev.contact.id, {
                         contact: ev.contact,
-                        actor: ev.other,
+                        actor: ev.other.owner,
                         side,
                     })
                     this.updateSides()
@@ -55,8 +55,9 @@ export class TouchingComponent extends Component {
         })
 
         owner.on('collisionend', (ev) => {
+            //@ts-expect-error body has to exist in order for this event to have happened
             if (ev.other.body?.collisionType === CollisionType.Passive) {
-                this.passives.delete(ev.other)
+                this.passives.delete(ev.other.owner)
             } else {
                 this.contacts.delete(ev.lastContact.id)
                 this.updateSides()
