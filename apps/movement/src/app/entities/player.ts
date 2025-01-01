@@ -1,8 +1,12 @@
 import {
-  Actor, ColliderComponent,
+  Actor,
+  ColliderComponent,
   CollisionType,
   Color,
-  Engine, Shape, vec, Vector
+  Engine,
+  Shape,
+  vec,
+  Vector,
 } from 'excalibur';
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
@@ -13,19 +17,24 @@ import { CollisionGroup } from '../utils/collision';
  * @param p the first polygon
  * @param q the second polygon
  */
-function minkowski(p: Vector[], q: Vector[]):Vector[] {
-  if(p.length===0||q.length===0){throw "Both polygons must have at least one vertex"}
+function minkowski(p: Vector[], q: Vector[]): Vector[] {
+  if (p.length === 0 || q.length === 0) {
+    throw 'Both polygons must have at least one vertex';
+  }
 
   // Ensure cyclic ordering by finding the vertex with the lowest y-coordinate (and lowest x if tied)
-  const findStartingVertex = (polygon:Vector[]) => {
-    const {index} = polygon.reduce((acc, cur,index)=>{
-      if(!acc.vertex || cur.y<acc.vertex.y){
-        return {index, vertex:cur}
-      }else if(cur.y===acc.vertex.y && cur.x<acc.vertex.x){
-        return {index, vertex:cur}
-      }
-      return acc;
-    },{index:0, vertex:polygon[0]})
+  const findStartingVertex = (polygon: Vector[]) => {
+    const { index } = polygon.reduce(
+      (acc, cur, index) => {
+        if (!acc.vertex || cur.y < acc.vertex.y) {
+          return { index, vertex: cur };
+        } else if (cur.y === acc.vertex.y && cur.x < acc.vertex.x) {
+          return { index, vertex: cur };
+        }
+        return acc;
+      },
+      { index: 0, vertex: polygon[0] },
+    );
     return index;
   };
 
@@ -34,17 +43,21 @@ function minkowski(p: Vector[], q: Vector[]):Vector[] {
 
   const cyclicNext = (index, length) => (index + 1) % length;
 
-  const result:Vector[] = [];
+  const result: Vector[] = [];
   let i = startP;
   let j = startQ;
 
-  let cap=0;
+  /**
+   * safety mechanism to guarantee no runaway while loop. It should never run
+   * more than p.length + q.length times, as by then all vertices should have been covered
+   */
+  let cap = 0;
 
   do {
     result.push(p[i].clone().add(q[j]));
 
-    const edgeP:Vector = p[cyclicNext(i,p.length)].clone().sub(p[i]);
-    const edgeQ:Vector = q[cyclicNext(j,q.length)].clone().sub(q[j]);
+    const edgeP: Vector = p[cyclicNext(i, p.length)].clone().sub(p[i]);
+    const edgeQ: Vector = q[cyclicNext(j, q.length)].clone().sub(q[j]);
 
     const cross = edgeP.cross(edgeQ);
 
@@ -55,8 +68,9 @@ function minkowski(p: Vector[], q: Vector[]):Vector[] {
     } else {
       i = cyclicNext(i, p.length);
       j = cyclicNext(j, q.length);
-    }cap++;
-  } while ((i !== startP || j !== startQ) && cap<p.length+q.length);
+    }
+    cap++;
+  } while ((i !== startP || j !== startQ) && cap < p.length + q.length);
 
   return result;
 }
@@ -77,18 +91,23 @@ class PlayerActor extends Actor {
       collisionGroup: CollisionGroup.Player,
     });
   }
+
   onInitialize(engine: Engine): void {
     this.body.friction = 0.9;
     this.body.useGravity = true;
     this.addComponent(new MobilityComponent());
     this.addComponent(new TouchingComponent());
     const sensor = new Actor({
-      //@ts-expect-error
-      collider: Shape.Polygon([...this.collider.get().points]),
+      collider: Shape.Polygon(this.polygon),
       collisionGroup: CollisionGroup.Player,
     });
     this.addChild(sensor);
     this.sweepboxId = sensor.id;
+  }
+
+  get polygon(): Vector[] {
+    //@ts-expect-error this.collider.get().points does exist since this uses a Box collider, which extends Polygon
+    return this.collider.get().points;
   }
 
   // onPreCollisionResolve(self: Collider, other: Collider, side: Side, contact: CollisionContact): void {
@@ -100,13 +119,26 @@ class PlayerActor extends Actor {
   //   }
   // }
   onPreUpdate(engine: Engine, elapsed: number) {
-    const sweptBox = this.children.find((e)=>e.id===this.sweepboxId);
+    const sweptBox = this.children.find((e) => e.id === this.sweepboxId);
     const collider = sweptBox.get(ColliderComponent);
-    const projection = this.vel.clone().scaleEqual(elapsed/1000 * 2)
-    //@ts-expect-error
-    collider.set(Shape.Polygon(minkowski(this.collider.get().points,[vec(0,0),projection])));
+    const projection = this.vel.clone().scaleEqual((elapsed / 1000) * 2);
+    collider.set(
+      Shape.Polygon(minkowski(this.polygon, [vec(0, 0), projection])),
+    );
   }
 }
 
-export { PlayerActor };
+/**
+ * sample usage:
+ * 1. compute the 'projected' distance traveled. in this example I achieved this by using the velocity
+ * and the update timestep to compute the pixel distance traveled.
+ * 2. invoke the `minkowski` function with your 'square' hitbox and a 'polygon' represented by the velocity vector and the origin
+ * 3. use the resulting Vector array to set your collider's geometry
+ *
+ * const projection = this.vel.clone().scaleEqual((elapsed / 1000) * 2);
+ * collider.set(
+ *       Shape.Polygon(minkowski(this.collider.get().points, [vec(0, 0), projection])),
+ *     );
+ */
 
+export { PlayerActor };

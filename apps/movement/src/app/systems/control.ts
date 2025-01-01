@@ -59,7 +59,8 @@ class ControlSystem extends System {
       const grounded = touching.Bottom.size > 0;
 
       const acc = this.computeAcceleration(mobility, intent);
-      grounded ? (acc.y = 0) : (acc.y = mobility.gravity);
+      acc.y=mobility.gravity;
+      // grounded ? (acc.y = 0) : (acc.y = mobility.gravity);
 
       body.acc = acc;
       if (grounded) {
