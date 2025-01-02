@@ -28,6 +28,7 @@ const game = new Engine({
     displayMode: DisplayMode.Fixed,
     antialiasing: false,
     physics: {
+        substep: 5, // < --- splits up the motion, and gives more opportunities for the solver to get it right
         arcade: {
             contactSolveBias: ContactSolveBias.VerticalFirst,
         },
@@ -39,7 +40,7 @@ const game = new Engine({
             checkForFastBodies: true
         }
     },
-    // maxFps: 60,
+    maxFps: 60,
     fixedUpdateFps:60,
 });
 
