@@ -39,7 +39,8 @@ const game = new Engine({
             checkForFastBodies: true
         }
     },
-    maxFps: 60
+    // maxFps: 60,
+    fixedUpdateFps:60,
 });
 
 game.showDebug(true);
