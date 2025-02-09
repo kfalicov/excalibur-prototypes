@@ -1,95 +1,81 @@
 import {
   Actor,
-  ColliderComponent,
+  Animation,
+  AnimationStrategy,
   CollisionType,
   Color,
   Engine,
-  Shape,
-  vec,
-  Vector,
+  range,
+  Side,
 } from 'excalibur';
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
 import { CollisionGroup } from '../utils/collision';
+import { clownSheet } from '../resources/resources';
+
+import clownViews from '../../assets/clown.json';
 
 /**
- * sweeps a polygon p along another polygon q by using minkowski to sum the two polygons.
- * @param p the first polygon
- * @param q the second polygon
+ * dangerously trusts that the index within `clownViews` json is going to be the same
+ * as the index used by the sprite sheet after Excalibur loads it
  */
-function minkowski(p: Vector[], q: Vector[]): Vector[] {
-  if (p.length === 0 || q.length === 0) {
-    throw 'Both polygons must have at least one vertex';
-  }
+const frameLookup = (query: string) =>
+  clownViews.findIndex(({ name }) => name === query);
 
-  // Ensure cyclic ordering by finding the vertex with the lowest y-coordinate (and lowest x if tied)
-  const findStartingVertex = (polygon: Vector[]) => {
-    const { index } = polygon.reduce(
-      (acc, cur, index) => {
-        if (!acc.vertex || cur.y < acc.vertex.y) {
-          return { index, vertex: cur };
-        } else if (cur.y === acc.vertex.y && cur.x < acc.vertex.x) {
-          return { index, vertex: cur };
-        }
-        return acc;
-      },
-      { index: 0, vertex: polygon[0] },
-    );
-    return index;
-  };
+/**
+ * generate a set of frame names that will be picked from the sprite sheet
+ * to construct an animation
+ */
+const generateFramesByName = (
+  startIndex: number,
+  endIndex: number,
+  prefix,
+  padding?: number,
+) => {
+  return range(startIndex, endIndex)
+    .map((i) => frameLookup(`${prefix}${`${i}`.padStart(padding, '0')}`))
+    .filter((i) => i >= 0);
+};
 
-  const startP = findStartingVertex(p);
-  const startQ = findStartingVertex(q);
+const stand = Animation.fromSpriteSheet(
+  clownSheet,
+  generateFramesByName(0, 6, 'stand_'),
+  60,
+  AnimationStrategy.PingPong,
+);
+stand.frames[0].duration = 240;
+stand.frames[1].duration=120;
+stand.frames[4].duration=120;
+stand.frames[5].duration = 240;
 
-  const cyclicNext = (index, length) => (index + 1) % length;
+const walk = Animation.fromSpriteSheet(
+  clownSheet,
+  generateFramesByName(0, 8, 'walk_'),
+  80,
+  AnimationStrategy.Loop,
+);
 
-  const result: Vector[] = [];
-  let i = startP;
-  let j = startQ;
-
-  /**
-   * safety mechanism to guarantee no runaway while loop. It should never run
-   * more than p.length + q.length times, as by then all vertices should have been covered
-   */
-  let cap = 0;
-
-  do {
-    result.push(p[i].clone().add(q[j]));
-
-    const edgeP: Vector = p[cyclicNext(i, p.length)].clone().sub(p[i]);
-    const edgeQ: Vector = q[cyclicNext(j, q.length)].clone().sub(q[j]);
-
-    const cross = edgeP.cross(edgeQ);
-
-    if (cross > 0) {
-      i = cyclicNext(i, p.length);
-    } else if (cross < 0) {
-      j = cyclicNext(j, q.length);
-    } else {
-      i = cyclicNext(i, p.length);
-      j = cyclicNext(j, q.length);
-    }
-    cap++;
-  } while ((i !== startP || j !== startQ) && cap < p.length + q.length);
-
-  return result;
-}
+const tumble = Animation.fromSpriteSheet(
+  clownSheet,
+  generateFramesByName(0, 8, 'tumble_'),
+  40,
+  AnimationStrategy.Loop,
+);
 
 class PlayerActor extends Actor {
-  private sweepboxId: number;
-
   constructor({ x = 120, y = 80 }: { x?: number; y?: number } = {}) {
     super({
       x,
       y,
-      width: 20,
-      height: 20,
+      width: 32,
+      height: 32,
       // Let's give it some color with one of the predefined
       // color constants
       color: Color.Black,
       collisionType: CollisionType.Active,
       collisionGroup: CollisionGroup.Player,
     });
+    this.graphics.use(stand);
   }
 
   onInitialize(engine: Engine): void {
@@ -97,48 +83,31 @@ class PlayerActor extends Actor {
     this.body.useGravity = true;
     this.addComponent(new MobilityComponent());
     this.addComponent(new TouchingComponent());
-    const sensor = new Actor({
-      collider: Shape.Polygon(this.polygon),
-      collisionGroup: CollisionGroup.Player,
-    });
-    this.addChild(sensor);
-    this.sweepboxId = sensor.id;
   }
+  onPreUpdate() {
+    if (Math.abs(this.body.vel.x) > 0.5) {
+      this.graphics.flipHorizontal = this.body.vel.x < 0;
+    }
+    //@ts-expect-error speed exists as long as the player always has an animation active
+    this.graphics.current.speed=1;
 
-  get polygon(): Vector[] {
-    //@ts-expect-error this.collider.get().points does exist since this uses a Box collider, which extends Polygon
-    return this.collider.get().points;
-  }
-
-  // onPreCollisionResolve(self: Collider, other: Collider, side: Side, contact: CollisionContact): void {
-  //   if (side === Side.Bottom) {
-  //     self.owner.get(BodyComponent).vel.y = 0;
-  //   }
-  //   if (side === Side.Left || side === Side.Right) {
-  //     self.owner.get(BodyComponent).vel.x = 0;
-  //   }
-  // }
-  onPreUpdate(engine: Engine, elapsed: number) {
-    const sweptBox = this.children.find((e) => e.id === this.sweepboxId);
-    const collider = sweptBox.get(ColliderComponent);
-    const projection = this.vel.clone().scaleEqual((elapsed / 1000) * 2);
-    collider.set(
-      Shape.Polygon(minkowski(this.polygon, [vec(0, 0), projection])),
-    );
+    const mobility = this.get(MobilityComponent);
+    const touching = this.get(TouchingComponent);
+    if (touching[Side.Bottom].size>0) {
+      if (Math.abs(this.body.vel.x) > mobility.acc.x / 60) {
+        this.graphics.use(walk);
+        const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
+        //@ts-expect-error speed exists as long as the player always has an animation active
+        this.graphics.current.speed = 0.5 + percentOfMax * 1.5;
+      } else if(this.body.acc.x === 0){
+        this.graphics.use(stand);
+      }else {
+        //use skid animation
+      }
+    }else{
+      this.graphics.use(tumble);
+    }
   }
 }
-
-/**
- * sample usage:
- * 1. compute the 'projected' distance traveled. in this example I achieved this by using the velocity
- * and the update timestep to compute the pixel distance traveled.
- * 2. invoke the `minkowski` function with your 'square' hitbox and a 'polygon' represented by the velocity vector and the origin
- * 3. use the resulting Vector array to set your collider's geometry
- *
- * const projection = this.vel.clone().scaleEqual((elapsed / 1000) * 2);
- * collider.set(
- *       Shape.Polygon(minkowski(this.collider.get().points, [vec(0, 0), projection])),
- *     );
- */
 
 export { PlayerActor };

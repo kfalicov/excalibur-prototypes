@@ -1,11 +1,12 @@
 import { Color, DefaultLoader, Engine, ImageSource, SpriteSheet } from "excalibur";
 
 import loaderImg from "../../assets/loader.png";
-import monkeyFile from "../../assets/monkey.png";
+import clownSrc from "../../assets/clown.png";
+import clownViews from "../../assets/clown.json";
 
 const Resources = {
-    monkey: new ImageSource(monkeyFile),
-}
+    clown: new ImageSource(clownSrc),
+} as const;
 
 const loaderSprite = new Image();
 loaderSprite.src = loaderImg;
@@ -110,19 +111,14 @@ class CustomLoader extends DefaultLoader {
 
 const loader = new CustomLoader();
 
-const monkeySpritesheet = SpriteSheet.fromImageSource({
-    image: Resources.monkey,
-    grid: {
-        columns: 4,
-        rows: 4,
-        spriteWidth: 16,
-        spriteHeight: 16
-    }
+const clownSheet = SpriteSheet.fromImageSourceWithSourceViews({
+    image: Resources.clown,
+    sourceViews: clownViews,
 });
 
 for (const res in Resources) {
     loader.addResource((Resources as any)[res]);
 }
 
-export { Resources, loader, monkeySpritesheet };
+export { Resources, loader, clownSheet };
 

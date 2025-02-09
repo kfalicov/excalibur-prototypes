@@ -6,6 +6,8 @@
       "node"
     ],
     "composite": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "declaration": true
   },
   "exclude": [
@@ -15,5 +17,6 @@
   ],
   "include": [
     "src/**/*.ts",
+    "src/assets/**/*.json"
   ]
 }

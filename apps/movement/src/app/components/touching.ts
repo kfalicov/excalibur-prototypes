@@ -70,7 +70,6 @@ export class TouchingComponent extends Component {
         this[Side.Right].clear()
         this[Side.Top].clear()
         this[Side.Bottom].clear()
-
         for (const { side, actor } of this.contacts.values()) {
             this[side].add(actor)
         }

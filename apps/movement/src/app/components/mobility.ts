@@ -9,7 +9,7 @@ class MobilityComponent extends Component {
     // terminal velocity
     max = new Vector(150, 150)
     damp = { x: 0.92, y: 1 }
-    jump = 500
+    jump = 300
     constructor() {
         super();
     }

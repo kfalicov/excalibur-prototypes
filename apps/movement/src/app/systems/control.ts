@@ -63,17 +63,17 @@ class ControlSystem extends System {
       // grounded ? (acc.y = 0) : (acc.y = mobility.gravity);
 
       body.acc = acc;
+      let x = body.vel.x;
+      let y = body.vel.y;
       if (grounded) {
-        let x = body.vel.x;
-        let y = 0;
         if (intent.Jump) {
-          x *= 2;
+          // x *= 2;
           y = -mobility.jump;
         }
         x *= mobility.damp.x;
-        x = clamp(x, -mobility.max.x, mobility.max.x);
-        body.vel = new Vector(x, y);
       }
+      x = clamp(x, -mobility.max.x, mobility.max.x);
+      body.vel = new Vector(x, y);
     }
   }
 
