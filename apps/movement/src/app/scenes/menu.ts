@@ -1,13 +1,13 @@
-import { fragmentSource, vertexSource } from "@shader/turbulence";
-import { Scene, Shader } from 'excalibur';
-import { Terrain } from "../entities/level";
+import { Scene } from 'excalibur';
+import { Terrain } from '../entities/level';
 import { PlayerActor } from '../entities/player';
 import { ControlSystem } from '../systems/control';
 
 class MenuScene extends Scene {
   onInitialize(): void {
     const gl = this.engine.canvas.getContext('webgl2');
-    new Shader({ fragmentSource, vertexSource, gl });
+    if (!gl) throw new Error('WebGL2 not supported');
+    // new Shader({ fragmentSource, vertexSource, gl });
     this.add(new PlayerActor());
     this.add(new Terrain());
     this.add(new Terrain({ x: 204, y: 100, width: 8, height: 140 }));
@@ -16,4 +16,3 @@ class MenuScene extends Scene {
 }
 
 export { MenuScene };
-

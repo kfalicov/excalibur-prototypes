@@ -1,6 +1,8 @@
 import {
+  Axes,
   BodyComponent,
   Buttons,
+  clamp,
   InputHost,
   Keys,
   Query,
@@ -9,7 +11,6 @@ import {
   SystemType,
   Vector,
   World,
-  clamp
 } from 'excalibur';
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
@@ -21,24 +22,21 @@ class ControlSystem extends System {
   public priority = SystemPriority.Highest;
 
   controls = {
-    Left: [Keys.A, Buttons.DpadLeft],
-    Right: [Keys.D, Buttons.DpadRight],
-    Up: [Keys.W, Buttons.DpadUp],
-    Down: [Keys.S, Buttons.DpadDown],
+    Left: [Keys.A, Buttons.DpadLeft, Axes.LeftStickX],
+    Right: [Keys.D, Buttons.DpadRight, Axes.LeftStickX],
+    Up: [Keys.W, Buttons.DpadUp, Axes.LeftStickY],
+    Down: [Keys.S, Buttons.DpadDown, Axes.LeftStickY],
     Jump: [Keys.Space, Buttons.Face1],
     Attack: [Keys.E, Buttons.Face3],
-  } as const
+  } as const;
 
   constructor(world: World, input: InputHost) {
     super();
-    this.query = world.query([
-      BodyComponent,
-      MobilityComponent,
-    ]);
+    this.query = world.query([BodyComponent, MobilityComponent]);
     this.input = input;
   }
 
-  public update(elapsedMs) {
+  public update(elapsedMs: number) {
     if (!this.input) return;
     /**
      * get user controls intent
@@ -50,16 +48,16 @@ class ControlSystem extends System {
       Down: this.isHeld('Down'),
       Jump: this.isHeld('Jump'),
       Attack: this.isHeld('Attack'),
-    }
+    };
 
     for (const entity of this.query.entities) {
       const mobility = entity.get(MobilityComponent);
       const body = entity.get(BodyComponent);
       const touching = entity.get(TouchingComponent);
-      const grounded = touching.Bottom.size > 0;
+      const grounded = (touching?.Bottom.size ?? 0) > 0;
 
       const acc = this.computeAcceleration(mobility, intent);
-      acc.y=mobility.gravity;
+      acc.y = mobility.gravity;
       // grounded ? (acc.y = 0) : (acc.y = mobility.gravity);
 
       body.acc = acc;
@@ -78,10 +76,13 @@ class ControlSystem extends System {
   }
 
   /**
-   * compute movement that should be applied to the body 
+   * compute movement that should be applied to the body
    * based on the user's intent and the mobility properties
    */
-  private computeAcceleration(mobility: MobilityComponent, intent: Record<keyof typeof this.controls, boolean>) {
+  private computeAcceleration(
+    mobility: MobilityComponent,
+    intent: Record<keyof typeof this.controls, boolean>,
+  ) {
     //the horizontal intent
     const x = (intent.Right ? 1 : 0) - (intent.Left ? 1 : 0);
     //the vertical intent
@@ -92,12 +93,16 @@ class ControlSystem extends System {
   }
 
   isHeld(control: keyof typeof this.controls) {
-    const [key, button] = this.controls[control]
+    const [key, button, axis] = this.controls[control];
+
+    const gamePadIfAny = this.getGamepad();
 
     return Boolean(
       this.input.keyboard.isHeld(key) ||
-      this.getGamepad()?.isButtonHeld(button)
-    )
+        gamePadIfAny?.isButtonHeld(button) ||
+        (axis !== undefined &&
+          Math.sign(gamePadIfAny?.getAxes(axis) ?? 0) === axisMapping[control]),
+    );
   }
 
   getGamepad() {
@@ -106,9 +111,17 @@ class ControlSystem extends System {
       this.input.gamepads.at(1),
       this.input.gamepads.at(2),
       this.input.gamepads.at(3),
-    ].find((g) => g.connected)
+    ].find((g) => g.connected);
   }
 }
 
-export { ControlSystem };
+const axisMapping: Partial<
+  Record<'Left' | 'Right' | 'Up' | 'Down' | 'Jump' | 'Attack', number>
+> = {
+  Left: -1,
+  Right: 1,
+  Up: -1,
+  Down: 1,
+};
 
+export { ControlSystem };

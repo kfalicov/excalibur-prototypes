@@ -6,7 +6,6 @@ import {
   Color,
   Engine,
   range,
-  Side,
 } from 'excalibur';
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
@@ -14,6 +13,21 @@ import { CollisionGroup } from '../utils/collision';
 import { clownSheet } from '../resources/resources';
 
 import clownViews from '../../assets/clown.json';
+import { AnimFSM, State, States } from './player-anim-state';
+
+type Tuple<T, N extends number> = N extends N
+  ? number extends N
+    ? T[]
+    : _TupleOf<T, N, []>
+  : never;
+type _TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N
+  ? R
+  : _TupleOf<T, N, [T, ...R]>;
+
+const isTupleOfAtLeast = <T, N extends number>(
+  tuple: T[],
+  minLength: N,
+): tuple is Tuple<T, N> => tuple.length >= minLength;
 
 /**
  * dangerously trusts that the index within `clownViews` json is going to be the same
@@ -29,11 +43,11 @@ const frameLookup = (query: string) =>
 const generateFramesByName = (
   startIndex: number,
   endIndex: number,
-  prefix,
+  prefix?: string,
   padding?: number,
 ) => {
   return range(startIndex, endIndex)
-    .map((i) => frameLookup(`${prefix}${`${i}`.padStart(padding, '0')}`))
+    .map((i) => frameLookup(`${prefix}${`${i}`.padStart(padding ?? 0, '0')}`))
     .filter((i) => i >= 0);
 };
 
@@ -43,10 +57,12 @@ const stand = Animation.fromSpriteSheet(
   60,
   AnimationStrategy.PingPong,
 );
-stand.frames[0].duration = 240;
-stand.frames[1].duration=120;
-stand.frames[4].duration=120;
-stand.frames[5].duration = 240;
+if (isTupleOfAtLeast(stand.frames, 6)) {
+  stand.frames[0].duration = 240;
+  stand.frames[1].duration = 120;
+  stand.frames[4].duration = 120;
+  stand.frames[5].duration = 240;
+}
 
 const walk = Animation.fromSpriteSheet(
   clownSheet,
@@ -63,6 +79,9 @@ const tumble = Animation.fromSpriteSheet(
 );
 
 class PlayerActor extends Actor {
+  state: State = States.stand;
+  timeInState = 0;
+
   constructor({ x = 120, y = 80 }: { x?: number; y?: number } = {}) {
     super({
       x,
@@ -84,30 +103,103 @@ class PlayerActor extends Actor {
     this.addComponent(new MobilityComponent());
     this.addComponent(new TouchingComponent());
   }
+
   onPreUpdate() {
     if (Math.abs(this.body.vel.x) > 0.5) {
       this.graphics.flipHorizontal = this.body.vel.x < 0;
     }
     //@ts-expect-error speed exists as long as the player always has an animation active
-    this.graphics.current.speed=1;
+    this.graphics.current.speed = 1;
 
     const mobility = this.get(MobilityComponent);
     const touching = this.get(TouchingComponent);
-    if (touching[Side.Bottom].size>0) {
-      if (Math.abs(this.body.vel.x) > mobility.acc.x / 60) {
-        this.graphics.use(walk);
-        const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
-        //@ts-expect-error speed exists as long as the player always has an animation active
-        this.graphics.current.speed = 0.5 + percentOfMax * 1.5;
-      } else if(this.body.acc.x === 0){
+    const nextState = AnimFSM[this.state](this.body, touching, {
+      timeInState: this.timeInState,
+    });
+
+    if (nextState !== this.state) this.timeInState = 0;
+    else this.timeInState += 1;
+
+    switch (nextState) {
+      case States.stand:
+        stand.play();
         this.graphics.use(stand);
-      }else {
-        //use skid animation
-      }
-    }else{
-      this.graphics.use(tumble);
+        break;
+      case States.walk:
+        const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
+        walk.speed = 0.5 + percentOfMax * 1.5;
+        this.graphics.use(walk);
+        break;
+      case States.jump:
+        stand.pause();
+        this.graphics.use(stand);
+        break;
+      case States.rise:
+        tumble.pause();
+        tumble.goToFrame(1);
+        this.graphics.use(tumble);
+        break;
+      case States.apex:
+        tumble.pause();
+        tumble.goToFrame(0);
+        this.graphics.use(tumble);
+        break;
+      case States.fall:
+        tumble.pause();
+        tumble.goToFrame(7);
+        this.graphics.use(tumble);
+        break;
+      default:
+        console.log('unhandled state:', nextState);
     }
+    this.state = nextState;
   }
 }
+
+/**
+ * if (touching[Side.Bottom].size > 0) {
+ *       //moving a minimum speed to start animation
+ *       if (Math.abs(this.body.vel.x) > mobility.acc.x / 40) {
+ *         if (this.graphics.current !== walk) {
+ *           walk.goToFrame(2);
+ *           this.graphics.use(walk);
+ *         }
+ *         const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
+ *         //@ts-expect-error speed exists as long as the player always has an animation active
+ *         this.graphics.current.speed = 0.5 + percentOfMax * 1.5;
+ *       } else {
+ *         //moving below minimum walk speed but accelerating
+ *         if (Math.abs(this.body.acc.x) > 0) {
+ *           //blocked by an obstacle in the direction of travel
+ *           if (touching[this.body.acc.x < 0 ? Side.Left : Side.Right].size > 0) {
+ *             if (this.bonked) this.graphics.use(stand);
+ *             else {
+ *               this.bonked = true;
+ *               console.log('bonk');
+ *             }
+ *             //TODO bonk animation and then stand
+ *             //not blocked, currently moving, but accelerating opposite the direction of travel
+ *           } else if (
+ *             Math.abs(this.body.vel.x) > 0.5 &&
+ *             Math.sign(this.body.acc.x) === -1 * Math.sign(this.body.vel.x)
+ *           ) {
+ *             console.log('skrrt');
+ *             //TODO screech/skid
+ *           } else {
+ *             this.bonked = false;
+ *             console.log('zoom');
+ *             walk.goToFrame(2);
+ *             this.graphics.use(walk);
+ *           }
+ *           //slowed below min speed but not accelerating in any direction
+ *         } else {
+ *           this.bonked = false;
+ *           this.graphics.use(stand);
+ *         }
+ *       }
+ *     } else {
+ *       this.graphics.use(tumble);
+ *     }
+ */
 
 export { PlayerActor };
