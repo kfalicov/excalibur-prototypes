@@ -12,30 +12,18 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "module": "esnext",
-    "lib": [
-      "es2024",
-      "dom"
-    ],
+    "lib": ["es2024", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@shader/turbulence": [
-        "libs/shader/turbulence/index.ts"
-      ],
-      "gamedev-tools": [
-        "libs/gamedev-tools/src/index.ts"
-      ]
+      "@shader/outline": ["libs/shader/outline/index.ts"],
+      "@shader/turbulence": ["libs/shader/turbulence/index.ts"],
+      "gamedev-tools": ["libs/gamedev-tools/src/index.ts"],
+      "libs/shader/outline/outline": ["libs/shader/outline/index.ts"]
     }
   },
-  "files": [
-    "./types/global.d.ts"
-  ],
-  "include": [
-    "libs/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "tmp"
-  ]
+  "files": ["./types/global.d.ts"],
+  "include": ["libs/**/*.ts", "apps/**/*.ts", "*.ts"],
+  "exclude": ["node_modules", "tmp"]
 }

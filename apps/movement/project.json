@@ -4,6 +4,55 @@
   "projectType": "application",
   "sourceRoot": "apps/movement/src",
   "tags": [],
-  "// targets": "to see all targets run: nx show project movement --web",
-  "targets": {}
+  "targets": {
+    "build": {
+      "executor": "@nx/vite:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/movement"
+      },
+      "configurations": {
+        "development": {
+          "mode": "development"
+        },
+        "production": {
+          "mode": "production"
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/vite:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "movement:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "movement:build:development",
+          "hmr": true
+        },
+        "production": {
+          "buildTarget": "movement:build:production",
+          "hmr": false
+        }
+      }
+    },
+    "preview": {
+      "dependsOn": ["build"],
+      "executor": "@nx/vite:preview-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "movement:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "movement:build:development"
+        },
+        "production": {
+          "buildTarget": "movement:build:production"
+        }
+      }
+    }
+  }
 }

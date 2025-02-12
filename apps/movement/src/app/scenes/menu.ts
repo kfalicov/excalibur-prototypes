@@ -1,5 +1,6 @@
-import { Scene } from 'excalibur';
+import { Actor, Color, Scene } from 'excalibur';
 import { Terrain } from '../entities/level';
+import { fragmentSource } from '@shader/outline';
 import { PlayerActor } from '../entities/player';
 import { ControlSystem } from '../systems/control';
 
@@ -12,6 +13,17 @@ class MenuScene extends Scene {
     this.add(new Terrain());
     this.add(new Terrain({ x: 204, y: 100, width: 8, height: 140 }));
     this.world.add(new ControlSystem(this.world, this.engine.input));
+
+    const waterMaterial = this.engine.graphicsContext.createMaterial({
+      name: 'water',
+      fragmentSource,
+      color: Color.fromRGB(55, 0, 200, 0.6),
+    });
+    const reflection = new Actor({
+      x: 0,
+      y: this.engine.screen.resolution.height / 2,
+    });
+    reflection.graphics.material = waterMaterial;
   }
 }
 
