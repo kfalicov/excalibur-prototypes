@@ -22,6 +22,7 @@ const computeScaling = (resolution: ViewportDimension): ViewportDimension => {
 
 const game = new Engine({
   resolution: Resolution.GameBoyAdvance,
+  pixelArt: true,
   viewport: computeScaling(Resolution.GameBoyAdvance),
   suppressHiDPIScaling: true,
   // suppressPlayButton: true,

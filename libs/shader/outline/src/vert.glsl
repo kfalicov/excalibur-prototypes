@@ -1,17 +1,20 @@
 #version 300 es
+in vec2 a_position;
 
-precision mediump float;
+in vec2 a_uv;
+out vec2 v_uv;
 
-in vec3 position;
-in vec3 normal;
+in vec2 a_screenuv;
+out vec2 v_screenuv;
 
-uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
-
-out vec3 fragNormal;
+uniform mat4 u_matrix;
+uniform mat4 u_transform;
 
 void main() {
-    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
-    fragNormal = normal;
+    // Set the vertex position using the ortho & transform matrix
+    gl_Position = u_matrix * u_transform * vec4(a_position, 0.0, 1.0);
+
+    // Pass through the UV coord to the fragment shader
+    v_uv = a_uv;
+    v_screenuv = a_screenuv;
 }

@@ -7,6 +7,7 @@ import {
   Engine,
   range,
 } from 'excalibur';
+import { fragmentSource, vertexSource } from '@shader/outline';
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
 import { CollisionGroup } from '../utils/collision';
@@ -102,6 +103,14 @@ class PlayerActor extends Actor {
     this.body.useGravity = true;
     this.addComponent(new MobilityComponent());
     this.addComponent(new TouchingComponent());
+
+    const outlineMaterial = engine.graphicsContext.createMaterial({
+      name: 'outline',
+      fragmentSource,
+      vertexSource
+    });
+
+    this.graphics.material = outlineMaterial;
   }
 
   onPreUpdate() {
