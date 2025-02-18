@@ -9,9 +9,12 @@ import {
 import loaderImg from '../../assets/loader.png';
 import clownSrc from '../../assets/clown.png';
 import clownViews from '../../assets/clown.json';
+import dogSrc from '../../assets/dog.png';
+import dogViews from '../../assets/dog.json';
 
 const Resources = {
   clown: new ImageSource(clownSrc),
+  dog: new ImageSource(dogSrc),
 } as const;
 
 const loaderSprite = new Image();
@@ -127,9 +130,13 @@ const clownSheet = SpriteSheet.fromImageSourceWithSourceViews({
   image: Resources.clown,
   sourceViews: clownViews,
 });
+const dogSheet = SpriteSheet.fromImageSourceWithSourceViews({
+  image: Resources.dog,
+  sourceViews: dogViews,
+});
 
 for (const res in Resources) {
   loader.addResource((Resources as any)[res]);
 }
 
-export { Resources, loader, clownSheet };
+export { Resources, loader, clownSheet, dogSheet };

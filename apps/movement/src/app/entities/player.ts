@@ -5,7 +5,6 @@ import {
   CollisionType,
   Color,
   Engine,
-  range,
 } from 'excalibur';
 import { fragmentSource, vertexSource } from '@shader/outline';
 import { MobilityComponent } from '../components/mobility';
@@ -15,46 +14,11 @@ import { clownSheet } from '../resources/resources';
 
 import clownViews from '../../assets/clown.json';
 import { AnimFSM, State, States } from './player-anim-state';
-
-type Tuple<T, N extends number> = N extends N
-  ? number extends N
-    ? T[]
-    : _TupleOf<T, N, []>
-  : never;
-type _TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N
-  ? R
-  : _TupleOf<T, N, [T, ...R]>;
-
-const isTupleOfAtLeast = <T, N extends number>(
-  tuple: T[],
-  minLength: N,
-): tuple is Tuple<T, N> => tuple.length >= minLength;
-
-/**
- * dangerously trusts that the index within `clownViews` json is going to be the same
- * as the index used by the sprite sheet after Excalibur loads it
- */
-const frameLookup = (query: string) =>
-  clownViews.findIndex(({ name }) => name === query);
-
-/**
- * generate a set of frame names that will be picked from the sprite sheet
- * to construct an animation
- */
-const generateFramesByName = (
-  startIndex: number,
-  endIndex: number,
-  prefix?: string,
-  padding?: number,
-) => {
-  return range(startIndex, endIndex)
-    .map((i) => frameLookup(`${prefix}${`${i}`.padStart(padding ?? 0, '0')}`))
-    .filter((i) => i >= 0);
-};
+import { generateFramesByName, isTupleOfAtLeast } from '../utils/frames';
 
 const stand = Animation.fromSpriteSheet(
   clownSheet,
-  generateFramesByName(0, 6, 'stand_'),
+  generateFramesByName(clownViews, 0, 5, 'stand_'),
   60,
   AnimationStrategy.PingPong,
 );
@@ -67,14 +31,14 @@ if (isTupleOfAtLeast(stand.frames, 6)) {
 
 const walk = Animation.fromSpriteSheet(
   clownSheet,
-  generateFramesByName(0, 8, 'walk_'),
+  generateFramesByName(clownViews, 0, 7, 'walk_'),
   80,
   AnimationStrategy.Loop,
 );
 
 const tumble = Animation.fromSpriteSheet(
   clownSheet,
-  generateFramesByName(0, 8, 'tumble_'),
+  generateFramesByName(clownViews, 0, 7, 'tumble_'),
   40,
   AnimationStrategy.Loop,
 );
@@ -107,7 +71,7 @@ class PlayerActor extends Actor {
     const outlineMaterial = engine.graphicsContext.createMaterial({
       name: 'outline',
       fragmentSource,
-      vertexSource
+      vertexSource,
     });
 
     this.graphics.material = outlineMaterial;
