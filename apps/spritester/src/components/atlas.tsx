@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority';
 import styles from './atlas.module.css';
 import { DropzoneOptions, useDropzone } from 'react-dropzone';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const dropzoneVariants = cva(
   [
@@ -24,16 +24,31 @@ const dropzoneVariants = cva(
 );
 
 function Atlas() {
-  const [sources, setSources] = useState<{ file: File; url: string }[]>([]);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const onDrop: DropzoneOptions['onDrop'] = (files: File[]) => {
-    setSources((prev) => [
-      ...prev,
-      ...files.map((file) => ({
-        file,
-        url: URL.createObjectURL(file),
-      })),
-    ]);
+    const context = canvasRef.current?.getContext('2d');
+    if (!context) return;
+
+    /**
+     * loaded images to be tracked and moved around on the canvas
+     */
+    const images = files.map((file) => {
+      const { promise, resolve, reject } =
+        Promise.withResolvers<HTMLImageElement>();
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = new Image();
+        img.onload = function () {
+          context.drawImage(img, 0, 0);
+          resolve(img);
+        };
+        if (e.target?.result) img.src = e.target.result as string;
+      };
+      reader.readAsDataURL(file);
+      return promise;
+    });
+    Promise.all(images).then(console.log);
   };
 
   const [isDraggingOverWindow, setIsDraggingOverWindow] = useState(false);
@@ -79,11 +94,12 @@ function Atlas() {
   }, []);
 
   return (
-    <div
-      {...getRootProps()}
-      className={`${styles.canvas} relative bg-gray-800 w-96 text-white`}
-    >
-      {
+    <div>
+      <canvas ref={canvasRef} />
+      <div
+        {...getRootProps()}
+        className={`${styles.canvas} relative bg-gray-800 w-96 text-white h-full`}
+      >
         <div
           className={dropzoneVariants({
             active: isDraggingOverWindow,
@@ -92,11 +108,8 @@ function Atlas() {
         >
           Drop here to add sprites
         </div>
-      }
-      <input {...getInputProps()} />
-      {sources.map(({ url }) => (
-        <img key={url} src={url} draggable={false} />
-      ))}
+        <input {...getInputProps()} />
+      </div>
     </div>
   );
 }
