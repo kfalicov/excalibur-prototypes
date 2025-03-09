@@ -1,0 +1,10 @@
+{
+  "name": "spritester-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/spritester-e2e/src",
+  "projectType": "application",
+  "tags": [],
+  "implicitDependencies": ["spritester"],
+  "// targets": "to see all targets run: nx show project spritester-e2e --web",
+  "targets": {}
+}
