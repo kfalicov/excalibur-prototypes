@@ -1,0 +1,12 @@
+.canvas {
+    background: conic-gradient(
+            #dc57af 90deg,
+            #a80f75 90deg 180deg,
+            #dc57af 180deg 270deg,
+            #a80f75 270deg
+    );
+    background-size: 1rem 1rem;
+    background-repeat: repeat;
+    background-position: top center;
+
+}
