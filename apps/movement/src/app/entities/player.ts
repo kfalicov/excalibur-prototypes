@@ -5,23 +5,23 @@ import {
   CollisionType,
   Color,
   Engine,
+  vec,
 } from 'excalibur';
 import { fragmentSource, vertexSource } from '@shader/outline';
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
 import { CollisionGroup } from '../utils/collision';
 import { clownSheet } from '../resources/resources';
-
-import clownViews from '../../assets/clown.json';
 import { AnimFSM, State, States } from './player-anim-state';
 import { generateFramesByName, isTupleOfAtLeast } from '../utils/frames';
 
-const stand = Animation.fromSpriteSheet(
-  clownSheet,
-  generateFramesByName(clownViews, 0, 5, 'stand_'),
-  60,
-  AnimationStrategy.PingPong,
-);
+const stand = new Animation({
+  frames: generateFramesByName(clownSheet, 0, 5, 'stand_').map((i) => ({
+    graphic: clownSheet.sprites[i],
+    duration: 60,
+  })),
+  strategy: AnimationStrategy.PingPong,
+});
 if (isTupleOfAtLeast(stand.frames, 6)) {
   stand.frames[0].duration = 240;
   stand.frames[1].duration = 120;
@@ -29,19 +29,21 @@ if (isTupleOfAtLeast(stand.frames, 6)) {
   stand.frames[5].duration = 240;
 }
 
-const walk = Animation.fromSpriteSheet(
-  clownSheet,
-  generateFramesByName(clownViews, 0, 7, 'walk_'),
-  80,
-  AnimationStrategy.Loop,
-);
+const walk = new Animation({
+  frames: generateFramesByName(clownSheet, 0, 7, 'walk_').map((i) => ({
+    graphic: clownSheet.sprites[i],
+    duration: 80,
+  })),
+  strategy: AnimationStrategy.Loop,
+});
 
-const tumble = Animation.fromSpriteSheet(
-  clownSheet,
-  generateFramesByName(clownViews, 0, 7, 'tumble_'),
-  40,
-  AnimationStrategy.Loop,
-);
+const tumble = new Animation({
+  frames: generateFramesByName(clownSheet, 0, 7, 'tumble_').map((i) => ({
+    graphic: clownSheet.sprites[i],
+    duration: 40,
+  })),
+  strategy: AnimationStrategy.Loop,
+});
 
 class PlayerActor extends Actor {
   state: State = States.stand;
@@ -65,7 +67,9 @@ class PlayerActor extends Actor {
   onInitialize(engine: Engine): void {
     this.body.friction = 0.9;
     this.body.useGravity = true;
-    this.addComponent(new MobilityComponent());
+    const playerMobility = new MobilityComponent();
+    playerMobility.acc = vec(0, 0);
+    this.addComponent(playerMobility);
     this.addComponent(new TouchingComponent());
 
     const outlineMaterial = engine.graphicsContext.createMaterial({
@@ -99,9 +103,11 @@ class PlayerActor extends Actor {
         this.graphics.use(stand);
         break;
       case States.walk:
-        const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
-        walk.speed = 0.5 + percentOfMax * 1.5;
-        this.graphics.use(walk);
+        {
+          const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
+          walk.speed = 0.5 + percentOfMax * 1.5;
+          this.graphics.use(walk);
+        }
         break;
       case States.jump:
         stand.pause();

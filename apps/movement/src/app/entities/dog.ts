@@ -12,27 +12,31 @@ import { CollisionGroup } from '../utils/collision';
 import { dogSheet, Resources } from '../resources/resources';
 import dogViews from '../../assets/dog.json';
 import { generateFramesByName } from '../utils/frames';
+import { fragmentSource, vertexSource } from '@shader/outline';
 
-const run = Animation.fromSpriteSheet(
-  dogSheet,
-  generateFramesByName(dogViews, 0, 7, 'run_'),
-  60,
-  AnimationStrategy.Loop,
-);
+const run = new Animation({
+  frames: generateFramesByName(dogSheet, 0, 7, 'run_').map((i) => ({
+    graphic: dogSheet.sprites[i],
+    duration: 60,
+  })),
+  strategy: AnimationStrategy.Loop,
+});
 
-const play = Animation.fromSpriteSheet(
-  dogSheet,
-  generateFramesByName(dogViews, 0, 3, 'play_'),
-  60,
-  AnimationStrategy.Freeze,
-);
+const play = new Animation({
+  frames: generateFramesByName(dogSheet, 0, 3, 'play_').map((i) => ({
+    graphic: dogSheet.sprites[i],
+    duration: 60,
+  })),
+  strategy: AnimationStrategy.Freeze,
+});
 
-const tail = Animation.fromSpriteSheet(
-  dogSheet,
-  generateFramesByName(dogViews, 0, 3, 'tail_'),
-  60,
-  AnimationStrategy.Loop,
-);
+const tail = new Animation({
+  frames: generateFramesByName(dogSheet, 0, 3, 'tail_').map((i) => ({
+    graphic: dogSheet.sprites[i],
+    duration: 60,
+  })),
+  strategy: AnimationStrategy.Loop,
+});
 const tailOffset = vec(-3, 5);
 
 const stand = new Sprite({
@@ -72,6 +76,14 @@ class DogActor extends Actor {
     this.body.useGravity = true;
     this.body.acc.y = 450;
     this.body.bounciness = 0.5;
+
+    const outlineMaterial = engine.graphicsContext.createMaterial({
+      name: 'outline',
+      fragmentSource,
+      vertexSource,
+    });
+
+    this.graphics.material = outlineMaterial;
   }
 
   onPreUpdate() {

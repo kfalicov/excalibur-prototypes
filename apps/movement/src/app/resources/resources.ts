@@ -11,10 +11,13 @@ import clownSrc from '../../assets/clown.png';
 import clownViews from '../../assets/clown.json';
 import dogSrc from '../../assets/dog.png';
 import dogViews from '../../assets/dog.json';
+import strongmanSrc from '../../assets/strongman.png';
+import strongmanViews from '../../assets/strongman.json';
 
 const Resources = {
   clown: new ImageSource(clownSrc),
   dog: new ImageSource(dogSrc),
+  strongman: new ImageSource(strongmanSrc),
 } as const;
 
 const loaderSprite = new Image();
@@ -134,9 +137,13 @@ const dogSheet = SpriteSheet.fromImageSourceWithSourceViews({
   image: Resources.dog,
   sourceViews: dogViews,
 });
+const strongmanSheet = SpriteSheet.fromImageSourceWithSourceViews({
+  image: Resources.strongman,
+  sourceViews: strongmanViews,
+});
 
 for (const res in Resources) {
   loader.addResource((Resources as any)[res]);
 }
 
-export { Resources, loader, clownSheet, dogSheet };
+export { Resources, loader, clownSheet, dogSheet, strongmanSheet };

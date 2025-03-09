@@ -2,6 +2,7 @@ import { Scene, Timer } from 'excalibur';
 import { Terrain } from '../entities/level';
 import { PlayerActor } from '../entities/player';
 import { ControlSystem } from '../systems/control';
+import { StrongmanActor } from '../entities/strongman';
 import { DogActor } from '../entities/dog';
 
 class MenuScene extends Scene {
@@ -11,10 +12,14 @@ class MenuScene extends Scene {
     // new Shader({ fragmentSource, vertexSource, gl });
     const p = new PlayerActor();
     this.add(p);
-    this.add(new Terrain());
+    this.add(new Terrain({ x: 0, y: 120, width: 512, height: 16 }));
     this.add(new Terrain({ x: 204, y: 100, width: 8, height: 140 }));
     this.world.add(new ControlSystem(this.world, this.engine.input));
 
+    this.camera.strategy.elasticToActor(p, 0.8, 0.9);
+
+    const s = new StrongmanActor();
+    this.add(s);
     const dog = new DogActor();
     this.add(dog);
 

@@ -1,4 +1,4 @@
-import { range } from 'excalibur';
+import { range, SpriteSheet } from 'excalibur';
 
 type Tuple<T, N extends number> = N extends N
   ? number extends N
@@ -18,15 +18,15 @@ const isTupleOfAtLeast = <T, N extends number>(
  * dangerously trusts that the index within `clownViews` json is going to be the same
  * as the index used by the sprite sheet after Excalibur loads it
  */
-const frameLookup = (views: { name: string }[], query: string) =>
-  views.findIndex(({ name }) => name === query);
+const frameLookup = (sheet: SpriteSheet, query: string) =>
+  sheet.sprites.findIndex(({ sourceView }) => sourceView.name === query);
 
 /**
  * generate a set of frame names that will be picked from the sprite sheet
  * to construct an animation
  */
 const generateFramesByName = (
-  views: { name: string }[],
+  sheet: SpriteSheet,
   startIndex: number,
   endIndex: number,
   prefix?: string,
@@ -34,7 +34,7 @@ const generateFramesByName = (
 ) => {
   return range(startIndex, endIndex)
     .map((i) =>
-      frameLookup(views, `${prefix}${`${i}`.padStart(padding ?? 0, '0')}`),
+      frameLookup(sheet, `${prefix}${`${i}`.padStart(padding ?? 0, '0')}`),
     )
     .filter((i) => i >= 0);
 };
