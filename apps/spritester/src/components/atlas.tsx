@@ -1,54 +1,35 @@
-import { cva } from 'class-variance-authority';
-import styles from './atlas.module.css';
+import { cva, cx } from 'class-variance-authority';
 import { DropzoneOptions, useDropzone } from 'react-dropzone';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import styles from './atlas.module.css';
+import { atlasManager as _atlasManager, AtlasState } from './atlas-manager';
 
 const dropzoneVariants = cva(
   [
-    'pointer-events-none absolute inset-0 place-items-center',
+    'pointer-events-none absolute inset-0 grid place-items-center',
     'before:border-2 before:border-white before:absolute before:inset-0 before:m-4 before:rounded-lg before:border-dashed',
   ],
   {
     variants: {
-      active: {
-        true: ['grid'],
-        false: ['hidden'],
-      },
       accept: {
         true: ['before:opacity-100'],
         false: ['before:opacity-70'],
       },
     },
-    defaultVariants: { active: false, accept: false },
+    defaultVariants: { accept: false },
   },
 );
 
 function Atlas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const atlasManager = useRef<AtlasState>(null);
+
+  const init = useCallback((el: HTMLCanvasElement) => {
+    if (el === null || atlasManager.current) return;
+    atlasManager.current = _atlasManager(el);
+  }, []);
 
   const onDrop: DropzoneOptions['onDrop'] = (files: File[]) => {
-    const context = canvasRef.current?.getContext('2d');
-    if (!context) return;
-
-    /**
-     * loaded images to be tracked and moved around on the canvas
-     */
-    const images = files.map((file) => {
-      const { promise, resolve, reject } =
-        Promise.withResolvers<HTMLImageElement>();
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const img = new Image();
-        img.onload = function () {
-          context.drawImage(img, 0, 0);
-          resolve(img);
-        };
-        if (e.target?.result) img.src = e.target.result as string;
-      };
-      reader.readAsDataURL(file);
-      return promise;
-    });
-    Promise.all(images).then(console.log);
+    atlasManager.current?.addImages(files);
   };
 
   const [isDraggingOverWindow, setIsDraggingOverWindow] = useState(false);
@@ -94,15 +75,20 @@ function Atlas() {
   }, []);
 
   return (
-    <div>
-      <canvas ref={canvasRef} />
+    <div className="relative">
+      <canvas
+        ref={init}
+        className={`${styles.canvas} bg-gray-700 w-full h-full`}
+      />
       <div
-        {...getRootProps()}
-        className={`${styles.canvas} relative bg-gray-800 w-96 text-white h-full`}
+        {...getRootProps({
+          className: cx('fixed inset-0 text-white bg-slate-700/25', {
+            hidden: !isDraggingOverWindow,
+          }),
+        })}
       >
         <div
           className={dropzoneVariants({
-            active: isDraggingOverWindow,
             accept: isDragAccept,
           })}
         >
