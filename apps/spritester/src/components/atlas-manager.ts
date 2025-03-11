@@ -1,3 +1,5 @@
+import { packRects } from './potpack';
+
 function atlasManager(canvas: HTMLCanvasElement) {
   console.info('Beginning Atlas Manager canvas app');
   const context = canvas.getContext('2d');
@@ -9,9 +11,16 @@ function atlasManager(canvas: HTMLCanvasElement) {
 
   const redraw = () => {
     console.log('redrew');
+    const packed = packRects(
+      sprites.map((img) => ({
+        width: img.width,
+        height: img.height,
+        src: img,
+      })),
+    );
     context.clearRect(0, 0, canvas.width, canvas.height);
-    sprites.forEach((sprite, index) => {
-      context.drawImage(sprite, index * 32, 0);
+    packed.boxes.forEach(({ src, x, y }, index) => {
+      context.drawImage(src, x, y);
     });
   };
 
