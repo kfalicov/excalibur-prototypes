@@ -2,7 +2,17 @@ import { cva, cx } from 'class-variance-authority';
 import { DropzoneOptions, useDropzone } from 'react-dropzone';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './atlas.module.css';
-import { atlasManager as _atlasManager, AtlasState } from './atlas-manager';
+import {
+  atlasManager as _atlasManager,
+  AtlasState,
+  bounds,
+  trim,
+} from './atlas-manager';
+
+const packingBehavior = {
+  bounds,
+  trim,
+};
 
 const dropzoneVariants = cva(
   [
@@ -29,7 +39,7 @@ function Atlas() {
   }, []);
 
   const onDrop: DropzoneOptions['onDrop'] = (files: File[]) => {
-    atlasManager.current?.addImages(files);
+    atlasManager.current?.addImages(files).then(console.log);
   };
 
   const [isDraggingOverWindow, setIsDraggingOverWindow] = useState(false);
@@ -76,10 +86,17 @@ function Atlas() {
 
   return (
     <div className="relative">
-      <canvas
-        ref={init}
-        className={`${styles.canvas} bg-gray-700 w-full h-full`}
-      />
+      <canvas ref={init} className={`${styles.canvas} bg-gray-700`} />
+      <select
+        onChange={(v) => {
+          atlasManager.current?.setPackingBehavior(
+            packingBehavior[v.currentTarget.value] ?? bounds,
+          );
+        }}
+      >
+        <option value="bounds">As Uploaded</option>
+        <option value="trim">Trim Empty Space</option>
+      </select>
       <div
         {...getRootProps({
           className: cx('fixed inset-0 text-white bg-slate-700/25', {
