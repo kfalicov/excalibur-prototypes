@@ -2,12 +2,7 @@ import { cva, cx } from 'class-variance-authority';
 import { DropzoneOptions, useDropzone } from 'react-dropzone';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './atlas.module.css';
-import {
-  atlasManager as _atlasManager,
-  AtlasState,
-  bounds,
-  trim,
-} from './atlas-manager';
+import { AtlasGen, bounds, trim } from './atlas-manager';
 
 const packingBehavior = {
   bounds,
@@ -31,11 +26,11 @@ const dropzoneVariants = cva(
 );
 
 function Atlas() {
-  const atlasManager = useRef<AtlasState>(null);
+  const atlasManager = useRef(AtlasGen);
 
   const init = useCallback((el: HTMLCanvasElement) => {
-    if (el === null || atlasManager.current) return;
-    atlasManager.current = _atlasManager(el);
+    if (el === null) return;
+    atlasManager.current.register(el);
   }, []);
 
   const onDrop: DropzoneOptions['onDrop'] = (files: File[]) => {
@@ -85,8 +80,13 @@ function Atlas() {
   }, []);
 
   return (
-    <div className="relative">
-      <canvas ref={init} className={`${styles.canvas} bg-gray-700`} />
+    <div className="overflow-hidden grid place-items-stretch">
+      <div className="relative">
+        <canvas
+          ref={init}
+          className={`${styles.canvas} bg-gray-700 absolute w-full h-full`}
+        />
+      </div>
       <select
         onChange={(v) => {
           atlasManager.current?.setPackingBehavior(

@@ -92,21 +92,30 @@ function itemPreprocessing<T>(
     }));
 }
 
-function atlasManager(canvas: HTMLCanvasElement) {
-  console.info('Beginning Atlas Manager canvas app');
-  const context = canvas.getContext('2d');
-  if (!context) {
-    throw "Can't find the canvas context.";
-  }
+function atlasManager() {
+  let context: CanvasRenderingContext2D;
 
   const sprites: ImageMetadata[] = [];
   let packingBehavior = bounds;
 
+  function register(c: HTMLCanvasElement) {
+    const ctx = c.getContext('2d');
+    if (!ctx) {
+      throw new Error('Canvas context cannot be null');
+    }
+    c.width = c.offsetWidth;
+    c.height = c.offsetHeight;
+    context = ctx;
+  }
+
   const redraw = () => {
+    if (!context) {
+      return;
+    }
     console.log('redrew');
     const itemComputation = itemPreprocessing(packingBehavior);
     const packed = packRects(itemComputation(sprites));
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
     packed.boxes.forEach(({ image, x, y, offset }, index) => {
       context.drawImage(image, x + offset.x, y + offset.y);
     });
@@ -148,19 +157,28 @@ function atlasManager(canvas: HTMLCanvasElement) {
    * setup observer to auto bump the canvas resolution when the viewport changes
    */
   const ro = new ResizeObserver((entries) => {
-    context.canvas.width = canvas.offsetWidth;
-    context.canvas.height = canvas.offsetHeight;
-    redraw();
+    if (!context) return;
+    const isDifferent =
+      context.canvas.width !== context.canvas.offsetWidth ||
+      context.canvas.height !== context.canvas.offsetHeight;
+    if (isDifferent) {
+      context.canvas.width = context.canvas.offsetWidth;
+      context.canvas.height = context.canvas.offsetHeight;
+      redraw();
+    }
   });
   ro.observe(document.body);
 
   return {
+    register,
     addImages,
     setPackingBehavior,
   };
 }
 
+const AtlasGen = atlasManager();
+
 type AtlasState = ReturnType<typeof atlasManager>;
 
-export { atlasManager, trim, bounds };
+export { AtlasGen, trim, bounds };
 export type { AtlasState };

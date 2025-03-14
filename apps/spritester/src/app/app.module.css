@@ -1,5 +1,5 @@
 /* Your styles goes here. */
-.container {
-    @apply grid;
-    grid-template-columns:33% 1fr;
+.tabContainer {
+    @apply grid h-full;
+    grid-template-rows: auto 1fr;
 }
