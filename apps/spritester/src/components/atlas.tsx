@@ -3,6 +3,7 @@ import { DropzoneOptions, useDropzone } from 'react-dropzone';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './atlas.module.css';
 import { AtlasGen, bounds, trim } from './atlas-manager';
+import { Packed } from './potpack';
 
 const packingBehavior = {
   bounds,
@@ -27,14 +28,23 @@ const dropzoneVariants = cva(
 
 function Atlas() {
   const atlasManager = useRef(AtlasGen);
+  const alignedContent = useRef<HTMLDivElement>(null);
+  const [packed, setPacked] = useState<Packed>();
 
   const init = useCallback((el: HTMLCanvasElement) => {
     if (el === null) return;
     atlasManager.current.register(el);
+    atlasManager.current.onRepack(setPacked);
+    atlasManager.current.onTransform((t) => {
+      const scale = t.zoom > 1 ? t.zoom : 2 ** (t.zoom - 1);
+      if (!alignedContent.current) return;
+      alignedContent.current.style.transform = `translate(${t.x}px, ${t.y}px) scale(${scale})`;
+      alignedContent.current.style.setProperty('--scale', scale);
+    });
   }, []);
 
   const onDrop: DropzoneOptions['onDrop'] = (files: File[]) => {
-    atlasManager.current?.addImages(files).then(console.log);
+    atlasManager.current?.addImages(files);
   };
 
   const [isDraggingOverWindow, setIsDraggingOverWindow] = useState(false);
@@ -81,11 +91,35 @@ function Atlas() {
 
   return (
     <div className="overflow-hidden grid place-items-stretch">
-      <div className="relative">
+      <div className="relative overflow-hidden">
         <canvas
           ref={init}
           className={`${styles.canvas} bg-gray-700 absolute w-full h-full`}
         />
+        <div
+          className="relative pointer-events-none origin-top-left"
+          ref={alignedContent}
+        >
+          {packed?.boxes.map((box) => (
+            <button
+              className="overflow-hidden absolute pointer-events-auto hover:bg-green-500/50 inline-flex before:absolute before:origin-top-left before:w-[calc(100%*var(--scale))] before:h-[calc(100%*var(--scale))] before:transform-[scale(calc(1/var(--scale)))] before:border-2 before:border-green-500"
+              style={{
+                left: box.x,
+                top: box.y,
+                width: box.width,
+                height: box.height,
+              }}
+              onClick={() => console.log(box)}
+            >
+              <span className="transform-[scale(calc(1/var(--scale)))] origin-top-left text-white text-outline text-sm pl-0.5">
+                {box.meta.filename.substring(
+                  0,
+                  box.meta.filename.lastIndexOf('.'),
+                ) || box.meta.filename}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
       <select
         onChange={(v) => {

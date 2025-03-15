@@ -1,4 +1,4 @@
-import { packRects } from './potpack';
+import { Packed, packRects } from './potpack';
 import { zoomPan } from './zoom-pan';
 
 type HitArea = {
@@ -129,6 +129,9 @@ function itemPreprocessing<T>(
     }));
 }
 
+const spritesheet = new OffscreenCanvas(1, 1);
+const spritesheetContext = spritesheet.getContext('2d');
+
 function atlasManager() {
   let context: CanvasRenderingContext2D;
 
@@ -143,6 +146,7 @@ function atlasManager() {
         this.x = x;
         this.y = y;
         requestAnimationFrame(redraw);
+        requestAnimationFrame(() => transformationHandler(this));
       }
     },
   };
@@ -166,13 +170,59 @@ function atlasManager() {
     ctx.imageSmoothingEnabled = false;
   }
 
+  /**
+   * invoke this when the packing is changed.
+   * this allows callbacks which tie back into the React system
+   */
+  let repackHandler: (packed: Packed) => void;
+  /**
+   * invoke this when the zoom/pan is changed.
+   * this allows callbacks which tie back into the React system
+   */
+  let transformationHandler: (t: typeof transformation) => void;
+
+  /**
+   * bind the provided function to be invoked when the atlas is repacked
+   */
+  function onRepack(callback: (packed: Packed) => void) {
+    repackHandler = callback;
+  }
+
+  function onTransform(callback: (t: typeof transformation) => void) {
+    transformationHandler = callback;
+  }
+
+  /**
+   * recompute the box packing for all sprites, based on the current packing behavior.
+   * Draw the output of this operation to an offscreen canvas
+   */
+  const repack = () => {
+    if (!spritesheetContext) return;
+    console.log('repacked');
+    const itemComputation = itemPreprocessing(packingBehavior);
+    const packed = packRects(itemComputation(sprites));
+
+    context.clearRect(
+      0,
+      0,
+      spritesheetContext.canvas.width,
+      spritesheetContext.canvas.height,
+    );
+    spritesheetContext.canvas.width = packed.width;
+    spritesheetContext.canvas.height = packed.height;
+
+    packed.boxes.forEach(({ image, x, y, offset }, index) => {
+      spritesheetContext.drawImage(image, x + offset.x, y + offset.y);
+    });
+    repackHandler(packed);
+  };
+
   const redraw = () => {
     if (!context) {
       return;
     }
     console.log('redrew');
-    const itemComputation = itemPreprocessing(packingBehavior);
-    const packed = packRects(itemComputation(sprites));
+
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
@@ -189,8 +239,8 @@ function atlasManager() {
       context,
       transformation.x,
       transformation.y,
-      packed.width * scale,
-      packed.height * scale,
+      spritesheet.width * scale,
+      spritesheet.height * scale,
     );
     context.setTransform(
       scale,
@@ -200,10 +250,7 @@ function atlasManager() {
       transformation.x,
       transformation.y,
     );
-
-    packed.boxes.forEach(({ image, x, y, offset }, index) => {
-      context.drawImage(image, x + offset.x, y + offset.y);
-    });
+    context.drawImage(spritesheet, 0, 0);
   };
 
   const addImages = (files: File[]) => {
@@ -217,9 +264,9 @@ function atlasManager() {
           const shrinkwrapped = shrinkWrap(img);
           sprites.push({
             image: img,
-            meta: { shrinkwrapped },
+            meta: { shrinkwrapped, filename: file.name },
           });
-          redraw();
+          repack();
           resolve(img);
         };
         if (e.target?.result) img.src = e.target.result as string;
@@ -228,13 +275,20 @@ function atlasManager() {
       return promise;
     });
 
-    return Promise.all(imageLoadStates);
+    return Promise.all(imageLoadStates).then((images) => {
+      /**
+       * any secondary postprocessing can happen here
+       */
+      redraw();
+      return images;
+    });
   };
 
   function setPackingBehavior(
     _packingBehavior: (img: ImageMetadata) => HitArea,
   ) {
     packingBehavior = _packingBehavior;
+    repack();
     redraw();
   }
 
@@ -259,6 +313,8 @@ function atlasManager() {
     register,
     addImages,
     setPackingBehavior,
+    onRepack,
+    onTransform,
   };
 }
 

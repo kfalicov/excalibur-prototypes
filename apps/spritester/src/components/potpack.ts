@@ -85,4 +85,7 @@ function packRects<T extends { width: number; height: number }>(rects: T[]) {
   };
 }
 
+type Packed = ReturnType<typeof packRects>;
+
 export { packRects };
+export type { Packed };
