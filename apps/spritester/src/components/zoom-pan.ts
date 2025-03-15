@@ -9,7 +9,7 @@ function zoomPan(context: CanvasRenderingContext2D, output: Transformation) {
   const baseTransform = {
     x: 0,
     y: 0,
-    scale: 1,
+    zoom: 1,
   };
 
   const inProgressTransform = {
@@ -26,18 +26,46 @@ function zoomPan(context: CanvasRenderingContext2D, output: Transformation) {
     return { x: localX - dragOrigin.x, y: localY - dragOrigin.y };
   }
 
+  function zoom(localX: number, localY: number, scrollDelta: number) {
+    const { zoom: oldZoom, x: oldX, y: oldY } = baseTransform;
+
+    const newZoom = (baseTransform.zoom = oldZoom + scrollDelta * -0.01);
+
+    const oldScale = oldZoom > 1 ? oldZoom : 2 ** (oldZoom - 1);
+    const newScale = newZoom > 1 ? newZoom : 2 ** (newZoom - 1);
+
+    const newX = (baseTransform.x =
+      localX - (localX - oldX) * (newScale / oldScale));
+    const newY = (baseTransform.y =
+      localY - (localY - oldY) * (newScale / oldScale));
+
+    console.log(newX, newY);
+
+    Object.assign(output, {
+      pan: { x: newX, y: newY },
+      zoom: newZoom,
+    });
+  }
+
   context.canvas.addEventListener('mousedown', (e) => {
     dragOrigin.x = e.clientX;
     dragOrigin.y = e.clientY;
     isMouseDown = true;
   });
 
-  context.canvas.addEventListener('mouseup', (e) => {
+  context.canvas.addEventListener('wheel', (e) => {
+    zoom(e.clientX, e.clientY, e.deltaY);
+  });
+
+  function commitMove(e: MouseEvent) {
     baseTransform.x += inProgressTransform.x;
     baseTransform.y += inProgressTransform.y;
     inProgressTransform.x = inProgressTransform.y = 0;
     isMouseDown = false;
-  });
+  }
+
+  context.canvas.addEventListener('mouseup', commitMove);
+  context.canvas.addEventListener('mouseleave', commitMove);
 
   function onMouseMove(e: MouseEvent) {
     if (!isMouseDown) {

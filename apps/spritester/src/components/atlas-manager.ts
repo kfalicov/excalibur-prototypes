@@ -123,6 +123,11 @@ function atlasManager() {
      * set up the zoom/pan listeners
      */
     zoomPan(ctx, transformation);
+
+    // ctx.mozImageSmoothingEnabled = false;
+    // ctx.webkitImageSmoothingEnabled = false;
+    // ctx.msImageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = false;
   }
 
   const redraw = () => {
@@ -134,7 +139,20 @@ function atlasManager() {
     const packed = packRects(itemComputation(sprites));
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-    context.setTransform(1, 0, 0, 1, transformation.x, transformation.y);
+
+    const scale =
+      transformation.zoom > 1
+        ? transformation.zoom
+        : 2 ** (transformation.zoom - 1);
+
+    context.setTransform(
+      scale,
+      0,
+      0,
+      scale,
+      transformation.x,
+      transformation.y,
+    );
     packed.boxes.forEach(({ image, x, y, offset }, index) => {
       context.drawImage(image, x + offset.x, y + offset.y);
     });
@@ -197,7 +215,4 @@ function atlasManager() {
 
 const AtlasGen = atlasManager();
 
-type AtlasState = ReturnType<typeof atlasManager>;
-
 export { AtlasGen, trim, bounds };
-export type { AtlasState };
