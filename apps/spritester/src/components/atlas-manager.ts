@@ -38,8 +38,8 @@ function shrinkWrap(img: HTMLImageElement) {
   return {
     x: bounds.left,
     y: bounds.top,
-    width: bounds.right - bounds.left,
-    height: bounds.bottom - bounds.top,
+    width: bounds.right - bounds.left + 1,
+    height: bounds.bottom - bounds.top + 1,
   };
 }
 
@@ -77,6 +77,42 @@ function pad(size: number): (v: HitArea) => HitArea {
       height: input.height + size * 2,
     };
   };
+}
+
+const plaidColors = {
+  primary: '#000000',
+  secondary: '#ff00ff',
+};
+
+const checkerPng =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAAMFBMVEVAQEAAAAD////t7e3b29vIyMi2trakpKSSkpKAgIBtbW1bW1tJSUk3NzckJCQSEhJTIq8eAAAAEHRSTlMA////////////////////wFCLQwAAABVJREFUKM9jEIQCBhgY4QKjwYAiAAATLhEBrcowyQAAAABJRU5ErkJggg==';
+
+const checkerboard = new Image();
+checkerboard.src = checkerPng;
+let pattern: CanvasPattern | null;
+checkerboard.onload = (img) => {
+  pattern =
+    new OffscreenCanvas(checkerboard.width, checkerboard.height)
+      .getContext('2d')
+      ?.createPattern(checkerboard, 'repeat') ?? null;
+};
+
+function drawPlaid(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  if (!pattern) {
+    return;
+  }
+  ctx.fillStyle = 'rgb(255 255 255 / 80%)';
+  ctx.fillRect(x, y, width, height);
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = pattern;
+  ctx.fillRect(x, y, width, height);
+  ctx.globalAlpha = 1;
 }
 
 /**
@@ -145,6 +181,17 @@ function atlasManager() {
         ? transformation.zoom
         : 2 ** (transformation.zoom - 1);
 
+    /**
+     * draw this while the canvas is reset
+     * to give the 'unmoving plaid' effect
+     */
+    drawPlaid(
+      context,
+      transformation.x,
+      transformation.y,
+      packed.width * scale,
+      packed.height * scale,
+    );
     context.setTransform(
       scale,
       0,
@@ -153,6 +200,8 @@ function atlasManager() {
       transformation.x,
       transformation.y,
     );
+    console.log(packed.width, packed.height);
+
     packed.boxes.forEach(({ image, x, y, offset }, index) => {
       context.drawImage(image, x + offset.x, y + offset.y);
     });

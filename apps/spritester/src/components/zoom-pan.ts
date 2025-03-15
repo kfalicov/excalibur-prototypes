@@ -39,8 +39,6 @@ function zoomPan(context: CanvasRenderingContext2D, output: Transformation) {
     const newY = (baseTransform.y =
       localY - (localY - oldY) * (newScale / oldScale));
 
-    console.log(newX, newY);
-
     Object.assign(output, {
       pan: { x: newX, y: newY },
       zoom: newZoom,

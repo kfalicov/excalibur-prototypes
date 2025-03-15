@@ -36,7 +36,7 @@ function packRects<T extends { width: number; height: number }>(rects: T[]) {
       ...box,
     };
     height = Math.max(height, space.y + box.height);
-    width = Math.max(width, space.h + box.width);
+    width = Math.max(width, space.x + box.width);
 
     if (box.width === space.w && box.height === space.h) {
       // space matches the box exactly; remove it
