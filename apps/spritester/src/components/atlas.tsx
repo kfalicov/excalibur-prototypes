@@ -102,7 +102,7 @@ function Atlas() {
         >
           {packed?.boxes.map((box) => (
             <button
-              className="overflow-hidden absolute pointer-events-auto hover:bg-green-500/50 inline-flex before:absolute before:origin-top-left before:w-[calc(100%*var(--scale))] before:h-[calc(100%*var(--scale))] before:transform-[scale(calc(1/var(--scale)))] before:border-2 before:border-green-500"
+              className="absolute pointer-events-auto hover:bg-green-500/50 inline-flex before:absolute before:origin-top-left before:w-[calc(100%*var(--scale))] before:h-[calc(100%*var(--scale))] before:transform-[scale(calc(1/var(--scale)))] before:border-2 before:border-green-500"
               style={{
                 left: box.x,
                 top: box.y,
