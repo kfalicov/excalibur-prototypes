@@ -200,7 +200,6 @@ function atlasManager() {
       transformation.x,
       transformation.y,
     );
-    console.log(packed.width, packed.height);
 
     packed.boxes.forEach(({ image, x, y, offset }, index) => {
       context.drawImage(image, x + offset.x, y + offset.y);
@@ -250,6 +249,7 @@ function atlasManager() {
     if (isDifferent) {
       context.canvas.width = context.canvas.offsetWidth;
       context.canvas.height = context.canvas.offsetHeight;
+      context.imageSmoothingEnabled = false;
       redraw();
     }
   });
