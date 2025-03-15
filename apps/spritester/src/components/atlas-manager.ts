@@ -1,4 +1,5 @@
 import { packRects } from './potpack';
+import { zoomPan } from './zoom-pan';
 
 type HitArea = {
   width: number;
@@ -97,6 +98,18 @@ function atlasManager() {
 
   const sprites: ImageMetadata[] = [];
   let packingBehavior = bounds;
+  const transformation = {
+    x: 0,
+    y: 0,
+    zoom: 1,
+    set pan({ x, y }: { x: number; y: number }) {
+      if (x !== this.x || y !== this.y) {
+        this.x = x;
+        this.y = y;
+        requestAnimationFrame(redraw);
+      }
+    },
+  };
 
   function register(c: HTMLCanvasElement) {
     const ctx = c.getContext('2d');
@@ -106,6 +119,10 @@ function atlasManager() {
     c.width = c.offsetWidth;
     c.height = c.offsetHeight;
     context = ctx;
+    /**
+     * set up the zoom/pan listeners
+     */
+    zoomPan(ctx, transformation);
   }
 
   const redraw = () => {
@@ -115,7 +132,9 @@ function atlasManager() {
     console.log('redrew');
     const itemComputation = itemPreprocessing(packingBehavior);
     const packed = packRects(itemComputation(sprites));
+    context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    context.setTransform(1, 0, 0, 1, transformation.x, transformation.y);
     packed.boxes.forEach(({ image, x, y, offset }, index) => {
       context.drawImage(image, x + offset.x, y + offset.y);
     });
