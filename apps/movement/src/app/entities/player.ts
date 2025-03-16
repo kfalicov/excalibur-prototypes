@@ -5,7 +5,6 @@ import {
   CollisionType,
   Color,
   Engine,
-  vec,
 } from 'excalibur';
 import { fragmentSource, vertexSource } from '@shader/outline';
 import { MobilityComponent } from '../components/mobility';
@@ -14,6 +13,7 @@ import { CollisionGroup } from '../utils/collision';
 import { clownSheet } from '../resources/resources';
 import { AnimFSM, State, States } from './player-anim-state';
 import { generateFramesByName, isTupleOfAtLeast } from '../utils/frames';
+import { ControllableComponent } from '../components/controllable';
 
 const stand = new Animation({
   frames: generateFramesByName(clownSheet, 0, 5, 'stand_').map((i) => ({
@@ -68,9 +68,10 @@ class PlayerActor extends Actor {
     this.body.friction = 0.9;
     this.body.useGravity = true;
     const playerMobility = new MobilityComponent();
-    playerMobility.acc = vec(0, 0);
     this.addComponent(playerMobility);
     this.addComponent(new TouchingComponent());
+
+    this.addComponent(new ControllableComponent());
 
     const outlineMaterial = engine.graphicsContext.createMaterial({
       name: 'outline',

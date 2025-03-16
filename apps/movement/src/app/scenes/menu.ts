@@ -4,6 +4,7 @@ import { PlayerActor } from '../entities/player';
 import { ControlSystem } from '../systems/control';
 import { StrongmanActor } from '../entities/strongman';
 import { DogActor } from '../entities/dog';
+import { ControllableComponent } from '../components/controllable';
 
 class MenuScene extends Scene {
   onInitialize(): void {
@@ -17,11 +18,28 @@ class MenuScene extends Scene {
     this.world.add(new ControlSystem(this.world, this.engine.input));
 
     this.camera.strategy.elasticToActor(p, 0.8, 0.9);
+    this.camera.strategy.radiusAroundActor(p, 48);
 
     const s = new StrongmanActor();
+    s.addComponent(new ControllableComponent());
     this.add(s);
     const dog = new DogActor();
     this.add(dog);
+
+    s.on('pointerdown', () => {
+      s.get(ControllableComponent).enabled = true;
+      p.get(ControllableComponent).enabled = false;
+      for (const strategy of this.camera._cameraStrategies) {
+        strategy.target = s;
+      }
+    });
+    p.on('pointerdown', () => {
+      p.get(ControllableComponent).enabled = true;
+      s.get(ControllableComponent).enabled = false;
+      for (const strategy of this.camera._cameraStrategies) {
+        strategy.target = p;
+      }
+    });
 
     const timer = new Timer({
       fcn: () => {

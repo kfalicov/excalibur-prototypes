@@ -9,14 +9,20 @@ import {
   System,
   SystemPriority,
   SystemType,
+  vec,
   Vector,
   World,
 } from 'excalibur';
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
+import { ControllableComponent } from '../components/controllable';
 
 class ControlSystem extends System {
-  query: Query<typeof BodyComponent | typeof MobilityComponent>;
+  query: Query<
+    | typeof BodyComponent
+    | typeof MobilityComponent
+    | typeof ControllableComponent
+  >;
   input: InputHost;
   public systemType = SystemType.Update;
   public priority = SystemPriority.Highest;
@@ -32,9 +38,22 @@ class ControlSystem extends System {
 
   constructor(world: World, input: InputHost) {
     super();
-    this.query = world.query([BodyComponent, MobilityComponent]);
+    this.query = world.query([
+      BodyComponent,
+      MobilityComponent,
+      ControllableComponent,
+    ]);
     this.input = input;
   }
+
+  previousIntent = {
+    Left: false,
+    Right: false,
+    Up: false,
+    Down: false,
+    Jump: false,
+    Attack: false,
+  };
 
   public update(elapsedMs: number) {
     if (!this.input) return;
@@ -51,8 +70,14 @@ class ControlSystem extends System {
     };
 
     for (const entity of this.query.entities) {
+      const controllable = entity.get(ControllableComponent);
       const mobility = entity.get(MobilityComponent);
       const body = entity.get(BodyComponent);
+      if (!controllable.enabled) {
+        body.acc = vec(0, mobility.gravity);
+        body.vel.x *= mobility.damp.x;
+        continue;
+      }
       const touching = entity.get(TouchingComponent);
       const grounded = (touching?.Bottom.size ?? 0) > 0;
 
@@ -63,16 +88,26 @@ class ControlSystem extends System {
       body.acc = acc;
       let x = body.vel.x;
       let y = body.vel.y;
+
       if (grounded) {
-        if (intent.Jump) {
-          // x *= 2;
+        /**
+         * reset midair jumps, apply ground friction
+         */
+        mobility.midairJumpsUsed = 0;
+        x *= mobility.damp.x;
+      }
+      if (intent.Jump && !this.previousIntent.Jump) {
+        if (grounded) {
+          y = -mobility.jump;
+        } else if (mobility.midairJumpsUsed < mobility.maxMidairJumps) {
           y = -mobility.jump;
         }
-        x *= mobility.damp.x;
       }
       x = clamp(x, -mobility.max.x, mobility.max.x);
       body.vel = new Vector(x, y);
     }
+
+    this.previousIntent = intent;
   }
 
   /**

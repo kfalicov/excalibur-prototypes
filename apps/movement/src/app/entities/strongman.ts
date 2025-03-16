@@ -65,6 +65,7 @@ class StrongmanActor extends Actor {
     const strongmanMobility = new MobilityComponent();
     strongmanMobility.acc = vec(100, 100);
     strongmanMobility.max = vec(40, 40);
+    strongmanMobility.maxMidairJumps = 0;
     this.addComponent(strongmanMobility);
     this.addComponent(new TouchingComponent());
 
