@@ -10,6 +10,7 @@ const StateLiterals = [
   'rise',
   'apex',
   'fall',
+  'plummet',
 ] as const;
 
 const States = Object.fromEntries(StateLiterals.map((s) => [s, s])) as {
@@ -72,18 +73,26 @@ const AnimFSM = {
     if ((context?.timeInState ?? 0) > 1) return States.rise;
     return States.jump;
   },
-  [States.rise]: function (body, touching) {
+  [States.rise]: function (body, touching, context) {
+    if (body.vel.y < -290) return States.jump;
     if (touching[Side.Top].size > 0) return States.apex;
     if (body.vel.y > -60) return States.apex;
+    if ((context?.timeInState ?? 0) > 4) return States.apex;
     return States.rise;
   },
   [States.apex]: function (body) {
+    if (body.vel.y < -290) return States.jump;
     if (body.vel.y > 60) return States.fall;
     return States.apex;
   },
   [States.fall]: function (body, touching) {
+    if (body.vel.y < -290) return States.jump;
+    if (body.vel.y > 900) return States.plummet;
     if (touching[Side.Bottom].size > 0) return this.stand(body, touching);
     return States.fall;
+  },
+  [States.plummet]: function (body, touching, context?) {
+    return this[States.fall](body, touching, context);
   },
 } as const satisfies StateMachine;
 

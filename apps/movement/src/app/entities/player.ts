@@ -5,6 +5,7 @@ import {
   CollisionType,
   Color,
   Engine,
+  vec,
 } from 'excalibur';
 import { fragmentSource, vertexSource } from '@shader/outline';
 import { MobilityComponent } from '../components/mobility';
@@ -37,6 +38,22 @@ const walk = new Animation({
   strategy: AnimationStrategy.Loop,
 });
 
+const run = new Animation({
+  frames: generateFramesByName(clownSheet, 0, 5, 'run_').map((i) => ({
+    graphic: clownSheet.sprites[i],
+    duration: 80,
+  })),
+  strategy: AnimationStrategy.Loop,
+});
+
+const leap = new Animation({
+  frames: generateFramesByName(clownSheet, 0, 5, 'leap_').map((i) => ({
+    graphic: clownSheet.sprites[i],
+    duration: 40,
+  })),
+  strategy: AnimationStrategy.Freeze,
+});
+
 const tumble = new Animation({
   frames: generateFramesByName(clownSheet, 0, 7, 'tumble_').map((i) => ({
     graphic: clownSheet.sprites[i],
@@ -48,6 +65,8 @@ const tumble = new Animation({
 class PlayerActor extends Actor {
   state: State = States.stand;
   timeInState = 0;
+  //which foot was last used to leap
+  foot = 0;
 
   constructor({ x = 120, y = 80 }: { x?: number; y?: number } = {}) {
     super({
@@ -88,6 +107,11 @@ class PlayerActor extends Actor {
     }
     //@ts-expect-error speed exists as long as the player always has an animation active
     this.graphics.current.speed = 1;
+    /**
+     * set the offset of the graphics back to nothing.
+     * TODO this will eventually be per-frame to assist with animation
+     */
+    this.graphics.offset = vec(0, 0);
 
     const mobility = this.get(MobilityComponent);
     const touching = this.get(TouchingComponent);
@@ -111,23 +135,30 @@ class PlayerActor extends Actor {
         }
         break;
       case States.jump:
+        if (this.timeInState === 0) {
+          this.foot = (this.foot + 1) % 2;
+        }
         stand.pause();
-        this.graphics.use(stand);
+        this.graphics.offset = vec(0, 6);
+        leap.goToFrame(0);
+        this.graphics.use(leap);
         break;
       case States.rise:
-        tumble.pause();
-        tumble.goToFrame(1);
-        this.graphics.use(tumble);
+        this.graphics.offset = vec(0, 3);
+        leap.goToFrame(this.foot + 1);
+        this.graphics.use(leap);
         break;
       case States.apex:
-        tumble.pause();
-        tumble.goToFrame(0);
-        this.graphics.use(tumble);
+        leap.goToFrame(3);
+        this.graphics.use(leap);
         break;
       case States.fall:
-        tumble.pause();
-        tumble.goToFrame(7);
-        this.graphics.use(tumble);
+        leap.goToFrame(4);
+        this.graphics.use(leap);
+        break;
+      case States.plummet:
+        leap.goToFrame(5);
+        this.graphics.use(leap);
         break;
       default:
         console.log('unhandled state:', nextState);
