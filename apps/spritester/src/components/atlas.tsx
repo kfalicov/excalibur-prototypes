@@ -31,6 +31,8 @@ function Atlas() {
   const alignedContent = useRef<HTMLDivElement>(null);
   const [packed, setPacked] = useState<Packed>();
 
+  const [selected, setSelected] = useState<string>();
+
   const init = useCallback((el: HTMLCanvasElement) => {
     if (el === null) return;
     atlasManager.current.register(el);
@@ -89,65 +91,90 @@ function Atlas() {
     };
   }, []);
 
+  const selectedBox = packed?.boxes.find((b) => b.meta.filename === selected);
+
   return (
-    <div className="overflow-hidden grid place-items-stretch">
-      <div className="relative overflow-hidden">
-        <canvas
-          ref={init}
-          className={`${styles.canvas} bg-gray-700 absolute w-full h-full`}
-        />
-        <div
-          className="relative pointer-events-none origin-top-left"
-          ref={alignedContent}
-        >
-          {packed?.boxes.map((box) => (
-            <button
-              className="absolute pointer-events-auto hover:bg-green-500/50 inline-flex before:absolute before:origin-top-left before:w-[calc(100%*var(--scale))] before:h-[calc(100%*var(--scale))] before:transform-[scale(calc(1/var(--scale)))] before:border-2 before:border-green-500"
-              style={{
-                left: box.x,
-                top: box.y,
-                width: box.width,
-                height: box.height,
-              }}
-              onClick={() => console.log(box)}
-            >
-              <span className="transform-[scale(calc(1/var(--scale)))] origin-top-left text-white text-outline text-sm pl-0.5">
-                {box.meta.filename.substring(
-                  0,
-                  box.meta.filename.lastIndexOf('.'),
-                ) || box.meta.filename}
-              </span>
-            </button>
-          ))}
+    <>
+      <div className="overflow-hidden grid place-items-stretch">
+        <div className="relative overflow-hidden">
+          <canvas
+            ref={init}
+            className={`${styles.canvas} bg-gray-700 absolute w-full h-full`}
+          />
+          <div
+            className="relative pointer-events-none origin-top-left"
+            style={{ '--scale': 1 }}
+            ref={alignedContent}
+          >
+            {packed?.boxes.map((box) => (
+              <button
+                key={box.meta.filename}
+                className="absolute pointer-events-auto hover:bg-green-500/50 inline-flex before:absolute before:origin-top-left before:w-[calc(100%*var(--scale))] before:h-[calc(100%*var(--scale))] before:transform-[scale(calc(1/var(--scale)))] before:border-2 before:border-green-500"
+                style={{
+                  left: box.x,
+                  top: box.y,
+                  width: box.width,
+                  height: box.height,
+                }}
+                onClick={() => {
+                  console.log(box);
+                  setSelected(box.meta.filename);
+                }}
+              >
+                <span className="transform-[scale(calc(1/var(--scale)))] origin-top-left text-white text-outline text-sm pl-0.5">
+                  {box.meta.filename.substring(
+                    0,
+                    box.meta.filename.lastIndexOf('.'),
+                  ) || box.meta.filename}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <select
-        onChange={(v) => {
-          atlasManager.current?.setPackingBehavior(
-            packingBehavior[v.currentTarget.value] ?? bounds,
-          );
-        }}
-      >
-        <option value="bounds">As Uploaded</option>
-        <option value="trim">Trim Empty Space</option>
-      </select>
-      <div
-        {...getRootProps({
-          className: cx('fixed inset-0 text-white bg-slate-700/25', {
-            hidden: !isDraggingOverWindow,
-          }),
-        })}
-      >
+        <select
+          onChange={(v) => {
+            atlasManager.current?.setPackingBehavior(
+              packingBehavior[v.currentTarget.value] ?? bounds,
+            );
+          }}
+        >
+          <option value="bounds">As Uploaded</option>
+          <option value="trim">Trim Empty Space</option>
+        </select>
         <div
-          className={dropzoneVariants({
-            accept: isDragAccept,
+          {...getRootProps({
+            className: cx('fixed inset-0 text-white bg-slate-700/25', {
+              hidden: !isDraggingOverWindow,
+            }),
           })}
         >
-          Drop here to add sprites
+          <div
+            className={dropzoneVariants({
+              accept: isDragAccept,
+            })}
+          >
+            Drop here to add sprites
+          </div>
+          <input {...getInputProps()} />
         </div>
-        <input {...getInputProps()} />
       </div>
-    </div>
+      <div className="bg-gray-300 p-4 grid">
+        {selectedBox ? (
+          <div className="whitespace-pre">
+            <img
+              style={{ imageRendering: 'pixelated' }}
+              src={selectedBox.image.src}
+              width="100%"
+            />
+            {JSON.stringify(selectedBox, undefined, 4)}
+          </div>
+        ) : (
+          <div className="border border-2 border-dashed border-white p-4 rounded-lg">
+            Select a Frame
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

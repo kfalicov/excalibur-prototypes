@@ -47,6 +47,8 @@ type ImageMetadata = {
   image: HTMLImageElement;
   meta: {
     shrinkwrapped: { x: number; y: number; width: number; height: number };
+    name: string;
+    filename: string;
   };
 };
 
@@ -264,7 +266,12 @@ function atlasManager() {
           const shrinkwrapped = shrinkWrap(img);
           sprites.push({
             image: img,
-            meta: { shrinkwrapped, filename: file.name },
+            meta: {
+              shrinkwrapped,
+              filename: file.name,
+              name:
+                file.name.substring(0, file.name.lastIndexOf('.')) || file.name,
+            },
           });
           repack();
           resolve(img);
@@ -314,6 +321,7 @@ function atlasManager() {
     addImages,
     setPackingBehavior,
     onRepack,
+    repack,
     onTransform,
   };
 }

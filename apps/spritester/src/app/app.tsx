@@ -28,11 +28,6 @@ export function App() {
         </Tabs.List>
         <Tabs.Content value="atlas" className="grid grid-cols-2">
           <Atlas />
-          <div className="bg-gray-300 h-48 p-4 grid">
-            <div className="border border-2 border-dashed border-white p-4 rounded-lg">
-              Select a Frame
-            </div>
-          </div>
         </Tabs.Content>
       </Tabs.Root>
     </>
