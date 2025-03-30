@@ -11,6 +11,10 @@ class MobilityComponent extends Component {
   damp = { x: 0.92, y: 1 };
   jump = 300;
   /**
+   * the delay in frames before the jump executes
+   */
+  jumpDelay = 3;
+  /**
    * the maximum number of midair jumps available to the entity
    */
   maxMidairJumps = Infinity;

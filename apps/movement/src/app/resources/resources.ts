@@ -7,8 +7,8 @@ import {
 } from 'excalibur';
 
 import loaderImg from '../../assets/loader.png';
-import clownSrc from '../../assets/clown.png';
-import clownViews from '../../assets/clown.json';
+import clownSrc from '../../assets/clown/spritesheet.png';
+import clownViews from '../../assets/clown/sourceviews.json';
 import dogSrc from '../../assets/dog.png';
 import dogViews from '../../assets/dog.json';
 import strongmanSrc from '../../assets/strongman.png';

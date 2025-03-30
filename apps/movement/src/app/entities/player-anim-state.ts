@@ -6,6 +6,7 @@ const StateLiterals = [
   'idle',
   'walk',
   'run',
+  'prejump',
   'jump',
   'rise',
   'apex',
@@ -69,8 +70,12 @@ const AnimFSM = {
   [States.run]: function () {
     throw new Error('Function not implemented.');
   },
+  [States.prejump]: function (body, touching, context?) {
+    if ((context?.timeInState ?? 0) > 2) return States.jump;
+    return States.prejump;
+  },
   [States.jump]: function (body, touching, context?) {
-    if ((context?.timeInState ?? 0) > 1) return States.rise;
+    if ((context?.timeInState ?? 0) > 4) return States.rise;
     return States.jump;
   },
   [States.rise]: function (body, touching, context) {

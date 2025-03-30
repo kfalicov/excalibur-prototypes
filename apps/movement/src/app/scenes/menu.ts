@@ -12,6 +12,8 @@ class MenuScene extends Scene {
     if (!gl) throw new Error('WebGL2 not supported');
     // new Shader({ fragmentSource, vertexSource, gl });
     const p = new PlayerActor();
+    p.body.enableFixedUpdateInterpolate = false;
+
     this.add(p);
     this.add(new Terrain({ x: 0, y: 120, width: 512, height: 16 }));
     this.add(new Terrain({ x: 204, y: 100, width: 8, height: 140 }));

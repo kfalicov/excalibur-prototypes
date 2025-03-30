@@ -5,6 +5,7 @@ import {
   CollisionType,
   Color,
   Engine,
+  Side,
   vec,
 } from 'excalibur';
 import { fragmentSource, vertexSource } from '@shader/outline';
@@ -47,7 +48,7 @@ const run = new Animation({
 });
 
 const leap = new Animation({
-  frames: generateFramesByName(clownSheet, 0, 5, 'leap_').map((i) => ({
+  frames: generateFramesByName(clownSheet, 0, 7, 'leap_').map((i) => ({
     graphic: clownSheet.sprites[i],
     duration: 40,
   })),
@@ -62,8 +63,12 @@ const tumble = new Animation({
   strategy: AnimationStrategy.Loop,
 });
 
+const bonk = clownSheet.sprites.find(
+  ({ sourceView }) => sourceView.name === 'bonk_0',
+);
+
 class PlayerActor extends Actor {
-  state: State = States.stand;
+  _state: State = States.stand;
   timeInState = 0;
   //which foot was last used to leap
   foot = 0;
@@ -99,71 +104,80 @@ class PlayerActor extends Actor {
     });
 
     this.graphics.material = outlineMaterial;
+
+    this.graphics.onPreDraw = () => {
+      if (Math.abs(this.body.vel.x) > 0.5) {
+        this.graphics.flipHorizontal = this.body.vel.x < 0;
+      }
+      /**
+       * set the offset of the graphics back to nothing.
+       * TODO this will eventually be per-frame to assist with animation
+       */
+      this.graphics.offset = vec(0, 0);
+
+      const mobility = this.get(MobilityComponent);
+      const touching = this.get(TouchingComponent);
+      const nextState = AnimFSM[this._state](this.body, touching, {
+        timeInState: this.timeInState,
+      });
+
+      switch (nextState) {
+        case States.stand:
+          if (
+            (this._state === 'walk' || this._state === 'run') &&
+            (touching[Side.Right] || touching[Side.Left])
+          ) {
+            console.log('bonked');
+            this.graphics.use(bonk);
+            break;
+          }
+          stand.play();
+          this.graphics.use(stand);
+          break;
+        case States.walk:
+          {
+            const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
+            walk.speed = 0.5 + percentOfMax * 1.5;
+            this.graphics.use(walk);
+          }
+          break;
+        case States.prejump:
+          leap.goToFrame(0);
+          this.graphics.use(leap);
+          this.graphics.offset = vec(0, 5);
+          break;
+        case States.jump:
+          if (this._state !== 'jump') {
+            this.foot = (this.foot + 1) % 2;
+          }
+          this.graphics.offset = vec(0, 6);
+          leap.goToFrame(this.foot + 1);
+          this.graphics.use(leap);
+          break;
+        case States.rise:
+        case States.apex:
+          leap.goToFrame(3);
+          this.graphics.use(leap);
+          break;
+        case States.fall:
+          leap.goToFrame(5);
+          this.graphics.use(leap);
+          break;
+        case States.plummet:
+          leap.goToFrame(6);
+          this.graphics.use(leap);
+          break;
+        default:
+          console.log('unhandled state:', nextState);
+      }
+      this.timeInState += 1;
+      this.state = nextState;
+    };
   }
 
-  onPreUpdate() {
-    if (Math.abs(this.body.vel.x) > 0.5) {
-      this.graphics.flipHorizontal = this.body.vel.x < 0;
-    }
-    //@ts-expect-error speed exists as long as the player always has an animation active
-    this.graphics.current.speed = 1;
-    /**
-     * set the offset of the graphics back to nothing.
-     * TODO this will eventually be per-frame to assist with animation
-     */
-    this.graphics.offset = vec(0, 0);
-
-    const mobility = this.get(MobilityComponent);
-    const touching = this.get(TouchingComponent);
-    const nextState = AnimFSM[this.state](this.body, touching, {
-      timeInState: this.timeInState,
-    });
-
-    if (nextState !== this.state) this.timeInState = 0;
-    else this.timeInState += 1;
-
-    switch (nextState) {
-      case States.stand:
-        stand.play();
-        this.graphics.use(stand);
-        break;
-      case States.walk:
-        {
-          const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
-          walk.speed = 0.5 + percentOfMax * 1.5;
-          this.graphics.use(walk);
-        }
-        break;
-      case States.jump:
-        if (this.timeInState === 0) {
-          this.foot = (this.foot + 1) % 2;
-        }
-        stand.pause();
-        this.graphics.offset = vec(0, 6);
-        leap.goToFrame(0);
-        this.graphics.use(leap);
-        break;
-      case States.rise:
-        this.graphics.offset = vec(0, 3);
-        leap.goToFrame(this.foot + 1);
-        this.graphics.use(leap);
-        break;
-      case States.apex:
-        leap.goToFrame(3);
-        this.graphics.use(leap);
-        break;
-      case States.fall:
-        leap.goToFrame(4);
-        this.graphics.use(leap);
-        break;
-      case States.plummet:
-        leap.goToFrame(5);
-        this.graphics.use(leap);
-        break;
-      default:
-        console.log('unhandled state:', nextState);
-    }
-    this.state = nextState;
+  set state(nextState: State) {
+    if (nextState !== this._state) this.timeInState = 0;
+    this._state = nextState;
   }
 }
 

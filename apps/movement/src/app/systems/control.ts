@@ -98,8 +98,10 @@ class ControlSystem extends System {
       }
       if (intent.Jump && !this.previousIntent.Jump) {
         if (grounded) {
+          entity.state = 'prejump';
           y = -mobility.jump;
         } else if (mobility.midairJumpsUsed < mobility.maxMidairJumps) {
+          // entity.state = 'prejump';
           y = -mobility.jump;
         }
       }
