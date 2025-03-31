@@ -1,17 +1,20 @@
-import { BodyComponent, Side } from 'excalibur';
+import { BodyComponent, StateMachine } from 'excalibur';
 import { TouchingComponent } from '../components/touching';
 
 const StateLiterals = [
   'stand',
   'idle',
   'walk',
+  'wallsplat',
   'run',
   'prejump',
   'jump',
   'rise',
+  'ceilingsplat',
   'apex',
   'fall',
   'plummet',
+  'floorsplat',
 ] as const;
 
 const States = Object.fromEntries(StateLiterals.map((s) => [s, s])) as {
@@ -20,7 +23,7 @@ const States = Object.fromEntries(StateLiterals.map((s) => [s, s])) as {
 
 type State = keyof typeof States;
 
-type StateMachine = {
+type _StateMachine = {
   [K in State]: (
     body: BodyComponent,
     touching: TouchingComponent,
@@ -28,78 +31,87 @@ type StateMachine = {
   ) => State;
 };
 
-/**
- * AnimFSM (Finite State Machine) represents a mapping of states to their respective
- * transitions in form of functions. Each function corresponds to a specific state
- * and determines the next state based on the state's logic and the given context.
- *
- * Each key in the FSM corresponds to a state defined in `StateLiterals`.
- *
- * given the current animation state and some context about the entity, this state machine
- * chooses the next appropriate state to put the actor in
- *
- * Note:
- * - The return type of each function corresponds to the next state, represented
- *   as a string literal from `StateLiterals`.
- */
-const AnimFSM = {
-  [States.stand]: function (body, touching, context?) {
-    if (body.vel.y > 10 && touching[Side.Bottom].size === 0) return States.fall;
-    if (body.vel.y < -10) return States.jump;
-    if (Math.abs(body.vel.x) > 10) return States.walk;
-    if ((context?.timeInState ?? 0) > 500) return States.idle;
-    return States.stand;
+const OTBStateMachine = StateMachine.create(
+  {
+    start: States.stand,
+    states: {
+      [States.stand]: {
+        transitions: ['*'],
+      },
+      [States.walk]: {
+        transitions: ['*'],
+      },
+      [States.wallsplat]: {
+        transitions: [States.stand],
+        onEnter({ data, from }) {
+          data.timeInCurrentState = 0;
+          return from === States.walk || from === States.run;
+        },
+        onExit({ data }) {
+          return data.timeInCurrentState > 3;
+        },
+      },
+      [States.run]: { transitions: [States.wallsplat] },
+      [States.idle]: { transitions: [] },
+      [States.prejump]: {
+        transitions: [States.jump],
+        onEnter({ data }) {
+          data.timeInCurrentState = 0;
+        },
+        onUpdate: (data) => {
+          if (data.timeInCurrentState > 2) {
+            OTBStateMachine.go(States.jump);
+          }
+        },
+      },
+      [States.jump]: {
+        transitions: [States.rise, States.ceilingsplat],
+        onEnter({ data }) {
+          data.foot = (data.foot + 1) % 2;
+          data.timeInCurrentState = 0;
+        },
+        onUpdate: (data) => {
+          if (data.timeInCurrentState > 2) {
+            OTBStateMachine.go(States.rise);
+          }
+        },
+      },
+      [States.ceilingsplat]: {
+        transitions: [States.apex],
+        onEnter({ data }) {
+          data.timeInCurrentState = 0;
+        },
+        onExit({ data }) {
+          return data.timeInCurrentState > 3;
+        },
+      },
+      [States.rise]: {
+        transitions: [States.ceilingsplat, States.apex, States.jump],
+      },
+      [States.apex]: { transitions: [States.fall, States.jump] },
+      [States.fall]: {
+        transitions: [
+          States.stand,
+          States.walk,
+          States.run,
+          States.plummet,
+          States.jump,
+        ],
+        onEnter({ data }) {
+          data.timeInCurrentState = 0;
+        },
+        onUpdate: (data) => {
+          if (data.timeInCurrentState > 30) OTBStateMachine.go(States.plummet);
+        },
+      },
+      [States.plummet]: {
+        transitions: [States.stand, States.walk, States.run, States.jump],
+      },
+      [States.floorsplat]: { transitions: [States.stand] },
+    },
   },
-  [States.idle]: function (body, touching) {
-    const breakout = this.stand(body, touching);
-    if (breakout === States.stand || breakout === States.idle)
-      return States.idle;
-    return breakout;
-  },
-  [States.walk]: function (body, touching) {
-    if (touching[body.acc.x < 0 ? Side.Left : Side.Right].size > 0)
-      //potential location for 'bonk' animation against wall
-      return States.stand;
-    //TODO this is where a 'skid' state may work well
-    if (Math.abs(body.vel.x) <= 10 && Math.abs(body.acc.x) > 0)
-      return States.walk;
-    //currently, walking follows the same logic as standing in all circumstances
-    //where it would transition to jumping or falling
-    return this.stand(body, touching);
-  },
-  [States.run]: function () {
-    throw new Error('Function not implemented.');
-  },
-  [States.prejump]: function (body, touching, context?) {
-    if ((context?.timeInState ?? 0) > 2) return States.jump;
-    return States.prejump;
-  },
-  [States.jump]: function (body, touching, context?) {
-    if ((context?.timeInState ?? 0) > 4) return States.rise;
-    return States.jump;
-  },
-  [States.rise]: function (body, touching, context) {
-    if (body.vel.y < -290) return States.jump;
-    if (touching[Side.Top].size > 0) return States.apex;
-    if (body.vel.y > -60) return States.apex;
-    if ((context?.timeInState ?? 0) > 4) return States.apex;
-    return States.rise;
-  },
-  [States.apex]: function (body) {
-    if (body.vel.y < -290) return States.jump;
-    if (body.vel.y > 60) return States.fall;
-    return States.apex;
-  },
-  [States.fall]: function (body, touching) {
-    if (body.vel.y < -290) return States.jump;
-    if (body.vel.y > 900) return States.plummet;
-    if (touching[Side.Bottom].size > 0) return this.stand(body, touching);
-    return States.fall;
-  },
-  [States.plummet]: function (body, touching, context?) {
-    return this[States.fall](body, touching, context);
-  },
-} as const satisfies StateMachine;
+  { timeInCurrentState: 0, foot: 0 },
+);
 
-export { States, AnimFSM };
+export { States, OTBStateMachine };
 export type { State };

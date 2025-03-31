@@ -101,6 +101,7 @@ class ControlSystem extends System {
           entity.state = 'prejump';
           y = -mobility.jump;
         } else if (mobility.midairJumpsUsed < mobility.maxMidairJumps) {
+          entity.state = 'jump';
           // entity.state = 'prejump';
           y = -mobility.jump;
         }

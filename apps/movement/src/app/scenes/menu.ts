@@ -16,6 +16,7 @@ class MenuScene extends Scene {
 
     this.add(p);
     this.add(new Terrain({ x: 0, y: 120, width: 512, height: 16 }));
+    this.add(new Terrain({ x: 90, y: 60, width: 40, height: 16 }));
     this.add(new Terrain({ x: 204, y: 100, width: 8, height: 140 }));
     this.world.add(new ControlSystem(this.world, this.engine.input));
 
@@ -23,10 +24,12 @@ class MenuScene extends Scene {
     this.camera.strategy.radiusAroundActor(p, 48);
 
     const s = new StrongmanActor();
-    s.addComponent(new ControllableComponent());
-    this.add(s);
+    const strongmanControl = new ControllableComponent();
+    strongmanControl.enabled = false;
+    s.addComponent(strongmanControl);
+    // this.add(s);
     const dog = new DogActor();
-    this.add(dog);
+    // this.add(dog);
 
     s.on('pointerdown', () => {
       s.get(ControllableComponent).enabled = true;
