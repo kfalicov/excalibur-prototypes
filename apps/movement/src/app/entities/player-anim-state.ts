@@ -1,5 +1,4 @@
-import { BodyComponent, StateMachine } from 'excalibur';
-import { TouchingComponent } from '../components/touching';
+import { StateMachine } from 'excalibur';
 
 const StateLiterals = [
   'stand',
@@ -23,14 +22,6 @@ const States = Object.fromEntries(StateLiterals.map((s) => [s, s])) as {
 
 type State = keyof typeof States;
 
-type _StateMachine = {
-  [K in State]: (
-    body: BodyComponent,
-    touching: TouchingComponent,
-    context?: { timeInState: number },
-  ) => State;
-};
-
 const OTBStateMachine = StateMachine.create(
   {
     start: States.stand,
@@ -42,13 +33,17 @@ const OTBStateMachine = StateMachine.create(
         transitions: ['*'],
       },
       [States.wallsplat]: {
-        transitions: [States.stand],
+        transitions: [States.stand, States.jump, States.prejump],
         onEnter({ data, from }) {
           data.timeInCurrentState = 0;
           return from === States.walk || from === States.run;
         },
-        onExit({ data }) {
-          return data.timeInCurrentState > 3;
+        onExit({ data, to }) {
+          return (
+            to === States.prejump ||
+            to === States.jump ||
+            data.timeInCurrentState > 3
+          );
         },
       },
       [States.run]: { transitions: [States.wallsplat] },
