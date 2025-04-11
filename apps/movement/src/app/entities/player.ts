@@ -13,7 +13,7 @@ import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
 import { CollisionGroup } from '../utils/collision';
 import { clownSheet } from '../resources/resources';
-import { OTBStateMachine, State, States } from './player-anim-state';
+import { PlayerAnimStateMachine, State, States } from './player-anim-state';
 import { generateFramesByName, isTupleOfAtLeast } from '../utils/frames';
 import { ControllableComponent } from '../components/controllable';
 
@@ -113,9 +113,9 @@ class PlayerActor extends Actor {
 
       const mobility = this.get(MobilityComponent);
 
-      console.log(OTBStateMachine.currentState.name);
+      // console.log(PlayerAnimStateMachine.currentState.name);
 
-      switch (OTBStateMachine.currentState.name) {
+      switch (PlayerAnimStateMachine.currentState.name) {
         case States.wallsplat:
           this.graphics.use(bonk);
           break;
@@ -137,7 +137,7 @@ class PlayerActor extends Actor {
           break;
         case States.jump:
           this.graphics.offset = vec(0, 6);
-          leap.goToFrame(OTBStateMachine.data.foot + 1);
+          leap.goToFrame(PlayerAnimStateMachine.data.foot + 1);
           this.graphics.use(leap);
           break;
         case States.ceilingsplat:
@@ -158,17 +158,20 @@ class PlayerActor extends Actor {
           this.graphics.use(leap);
           break;
         default:
-          console.log('unhandled state:', OTBStateMachine.currentState.name);
+          console.log(
+            'unhandled state:',
+            PlayerAnimStateMachine.currentState.name,
+          );
       }
     };
   }
 
   set state(nextState: State) {
-    OTBStateMachine.go(nextState);
+    PlayerAnimStateMachine.go(nextState);
   }
 
   onPostUpdate(engine, elapsed) {
-    OTBStateMachine.update(elapsed);
+    PlayerAnimStateMachine.update(elapsed);
     const touching = this.get(TouchingComponent);
     // console.log(
     //   touching[Side.Left].size,
@@ -180,19 +183,19 @@ class PlayerActor extends Actor {
      * check this before the velocity check
      */
     if (touching[Side.Right].size || touching[Side.Left].size) {
-      OTBStateMachine.go(States.wallsplat);
+      PlayerAnimStateMachine.go(States.wallsplat);
     }
     if (touching[Side.Top].size) {
-      OTBStateMachine.go(States.ceilingsplat);
+      PlayerAnimStateMachine.go(States.ceilingsplat);
     }
-    if (this.body.vel.y > 0) OTBStateMachine.go(States.apex);
-    if (this.body.vel.y > 10) OTBStateMachine.go(States.fall);
+    if (this.body.vel.y > 0) PlayerAnimStateMachine.go(States.apex);
+    if (this.body.vel.y > 10) PlayerAnimStateMachine.go(States.fall);
     if (Math.abs(this.body.vel.x) > 10 && touching[Side.Bottom].size)
-      OTBStateMachine.go(States.walk);
+      PlayerAnimStateMachine.go(States.walk);
     else if (touching[Side.Bottom].size) {
-      OTBStateMachine.go(States.stand);
+      PlayerAnimStateMachine.go(States.stand);
     }
-    OTBStateMachine.data.timeInCurrentState++;
+    PlayerAnimStateMachine.data.timeInCurrentState++;
   }
 }
 

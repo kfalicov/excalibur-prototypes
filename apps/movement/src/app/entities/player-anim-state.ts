@@ -22,7 +22,7 @@ const States = Object.fromEntries(StateLiterals.map((s) => [s, s])) as {
 
 type State = keyof typeof States;
 
-const OTBStateMachine = StateMachine.create(
+const PlayerAnimStateMachine = StateMachine.create(
   {
     start: States.stand,
     states: {
@@ -33,7 +33,7 @@ const OTBStateMachine = StateMachine.create(
         transitions: ['*'],
       },
       [States.wallsplat]: {
-        transitions: [States.stand, States.jump, States.prejump],
+        transitions: [States.stand, States.jump, States.prejump, States.walk],
         onEnter({ data, from }) {
           data.timeInCurrentState = 0;
           return from === States.walk || from === States.run;
@@ -42,6 +42,7 @@ const OTBStateMachine = StateMachine.create(
           return (
             to === States.prejump ||
             to === States.jump ||
+            to === States.walk ||
             data.timeInCurrentState > 3
           );
         },
@@ -55,7 +56,7 @@ const OTBStateMachine = StateMachine.create(
         },
         onUpdate: (data) => {
           if (data.timeInCurrentState > 2) {
-            OTBStateMachine.go(States.jump);
+            PlayerAnimStateMachine.go(States.jump);
           }
         },
       },
@@ -67,7 +68,7 @@ const OTBStateMachine = StateMachine.create(
         },
         onUpdate: (data) => {
           if (data.timeInCurrentState > 2) {
-            OTBStateMachine.go(States.rise);
+            PlayerAnimStateMachine.go(States.rise);
           }
         },
       },
@@ -96,7 +97,8 @@ const OTBStateMachine = StateMachine.create(
           data.timeInCurrentState = 0;
         },
         onUpdate: (data) => {
-          if (data.timeInCurrentState > 30) OTBStateMachine.go(States.plummet);
+          if (data.timeInCurrentState > 30)
+            PlayerAnimStateMachine.go(States.plummet);
         },
       },
       [States.plummet]: {
@@ -108,5 +110,5 @@ const OTBStateMachine = StateMachine.create(
   { timeInCurrentState: 0, foot: 0 },
 );
 
-export { States, OTBStateMachine };
+export { States, PlayerAnimStateMachine };
 export type { State };
