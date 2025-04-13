@@ -1,4 +1,5 @@
 import {
+  Actor,
   Axes,
   BodyComponent,
   Buttons,
@@ -6,6 +7,7 @@ import {
   InputHost,
   Keys,
   Query,
+  Scene,
   System,
   SystemPriority,
   SystemType,
@@ -16,6 +18,14 @@ import {
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
 import { ControllableComponent } from '../components/controllable';
+import { Resources } from '../resources/resources';
+
+type Intent = {
+  Left: boolean;
+  Right: boolean;
+  Up: boolean;
+  Down: boolean;
+};
 
 class ControlSystem extends System {
   query: Query<
@@ -23,7 +33,6 @@ class ControlSystem extends System {
     | typeof MobilityComponent
     | typeof ControllableComponent
   >;
-  input: InputHost;
   public systemType = SystemType.Update;
   public priority = SystemPriority.Highest;
 
@@ -33,17 +42,20 @@ class ControlSystem extends System {
     Up: [Keys.W, Buttons.DpadUp, Axes.LeftStickY],
     Down: [Keys.S, Buttons.DpadDown, Axes.LeftStickY],
     Jump: [Keys.Space, Buttons.Face1],
-    Attack: [Keys.E, Buttons.Face3],
+    Attack: [Keys.B, Buttons.Face3],
   } as const;
 
-  constructor(world: World, input: InputHost) {
+  constructor(
+    world: World,
+    private input: InputHost,
+    private scene: Scene,
+  ) {
     super();
     this.query = world.query([
       BodyComponent,
       MobilityComponent,
       ControllableComponent,
     ]);
-    this.input = input;
   }
 
   previousIntent = {
@@ -88,6 +100,7 @@ class ControlSystem extends System {
       body.acc = acc;
       let x = body.vel.x;
       let y = body.vel.y;
+      mobility.aiming = false;
 
       if (grounded) {
         /**
@@ -105,6 +118,37 @@ class ControlSystem extends System {
           // entity.state = 'prejump';
           y = -mobility.jump;
         }
+      }
+      if (intent.Attack) {
+        mobility.aiming = true;
+        if (intent.Left || intent.Right) {
+          entity.graphics.flipHorizontal = intent.Left;
+        }
+        body.acc.x = 0;
+        if (!this.previousIntent.Attack) {
+          const heldPie = new Actor({ pos: vec(0, 0), name: 'pie' });
+          heldPie.offset = vec(2, -16);
+          heldPie.actions.repeatForever((repeatCtx) => {
+            repeatCtx.moveTo(
+              vec(Math.random() * 1 - 1, Math.random() * 1 - 1),
+              100,
+            );
+          });
+          heldPie.graphics.use(Resources.pie.toSprite());
+          entity.addChild(heldPie);
+        }
+        entity.state = 'plummet';
+      } else if (this.previousIntent.Attack) {
+        entity.removeAllChildren();
+        const vel = computeThrow(intent, entity.graphics.flipHorizontal);
+        this.scene.projectileFactory.spawn(
+          body.center.x,
+          body.center.y - 10,
+          vel.x,
+          vel.y,
+          !entity.graphics.flipHorizontal,
+        );
+        entity.state = 'prejump';
       }
       x = clamp(x, -mobility.max.x, mobility.max.x);
       body.vel = new Vector(x, y);
@@ -152,6 +196,22 @@ class ControlSystem extends System {
     ].find((g) => g.connected);
   }
 }
+
+const computeThrow = (intent: Intent, flip: boolean) => {
+  if (intent.Right || intent.Left) {
+    return vec(flip ? -280 : 280, -150);
+    // use low angle
+  } else if (intent.Up) {
+    return vec(flip ? -30 : 30, -400);
+    //use vertical
+  } else if (intent.Down) {
+    //use diagonal down
+    return vec(flip ? -210 : 210, 70);
+  } else {
+    //default direction based on flip
+    return vec(flip ? -90 : 90, -300);
+  }
+};
 
 const axisMapping: Partial<
   Record<'Left' | 'Right' | 'Up' | 'Down' | 'Jump' | 'Attack', number>

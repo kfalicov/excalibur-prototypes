@@ -14,6 +14,7 @@ class MobilityComponent extends Component {
    * the delay in frames before the jump executes
    */
   jumpDelay = 3;
+  aiming: boolean = false;
   /**
    * the maximum number of midair jumps available to the entity
    */

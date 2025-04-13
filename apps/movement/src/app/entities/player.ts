@@ -102,7 +102,7 @@ class PlayerActor extends Actor {
     this.graphics.material = outlineMaterial;
 
     this.graphics.onPreDraw = () => {
-      if (Math.abs(this.body.vel.x) > 0.5) {
+      if (!playerMobility.aiming && Math.abs(this.body.vel.x) > 0.5) {
         this.graphics.flipHorizontal = this.body.vel.x < 0;
       }
       /**
@@ -117,7 +117,7 @@ class PlayerActor extends Actor {
 
       switch (PlayerAnimStateMachine.currentState.name) {
         case States.wallsplat:
-          this.graphics.use(bonk);
+          if (bonk) this.graphics.use(bonk);
           break;
         case States.stand:
           stand.play();
@@ -167,10 +167,11 @@ class PlayerActor extends Actor {
   }
 
   set state(nextState: State) {
-    PlayerAnimStateMachine.go(nextState);
+    const success = PlayerAnimStateMachine.go(nextState);
+    // console.log('went to', nextState, success);
   }
 
-  onPostUpdate(engine, elapsed) {
+  onPostUpdate(engine: Engine, elapsed: number) {
     PlayerAnimStateMachine.update(elapsed);
     const touching = this.get(TouchingComponent);
     // console.log(

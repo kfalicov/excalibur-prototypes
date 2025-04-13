@@ -6,8 +6,11 @@ import { StrongmanActor } from '../entities/strongman';
 import { DogActor } from '../entities/dog';
 import { ControllableComponent } from '../components/controllable';
 import { ComboSystem } from '../systems/combo';
+import { ProjectileFactory } from '../utils/projectile-factory';
 
 class MenuScene extends Scene {
+  projectileFactory = new ProjectileFactory(this);
+
   onInitialize(): void {
     const gl = this.engine.canvas.getContext('webgl2');
     if (!gl) throw new Error('WebGL2 not supported');
@@ -19,7 +22,7 @@ class MenuScene extends Scene {
     this.add(new Terrain({ x: 0, y: 120, width: 512, height: 16 }));
     this.add(new Terrain({ x: 90, y: 60, width: 40, height: 16 }));
     this.add(new Terrain({ x: 204, y: 100, width: 8, height: 140 }));
-    this.world.add(new ControlSystem(this.world, this.engine.input));
+    this.world.add(new ControlSystem(this.world, this.engine.input, this));
     this.world.add(new ComboSystem(this.world, this.input));
 
     this.camera.strategy.elasticToActor(p, 0.8, 0.9);

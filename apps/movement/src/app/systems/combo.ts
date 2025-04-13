@@ -90,14 +90,16 @@ class ComboSystem extends System {
     this.directions.hold =
       ((this.directions.hold << NUM_DIRS) | directions) & MASK;
     this.directions.press =
-      ((this.directions.press << NUM_DIRS) | directions) & MASK;
+      ((this.directions.press << NUM_DIRS) |
+        (~(this.directions.hold >> NUM_DIRS) & directions)) &
+      MASK;
 
     this.directions.release =
       ((this.directions.release << NUM_DIRS) |
         ((this.directions.hold >> NUM_DIRS) & ~this.directions.hold)) &
       MASK;
 
-    this.log(this.directions);
+    // this.log(this.directions);
 
     this.buffer = this.buffer.slice(-(COMFORT * MAX_COMBO + 1));
 

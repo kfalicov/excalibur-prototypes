@@ -13,11 +13,13 @@ import dogSrc from '../../assets/dog.png';
 import dogViews from '../../assets/dog.json';
 import strongmanSrc from '../../assets/strongman.png';
 import strongmanViews from '../../assets/strongman.json';
+import pie from '../../assets/projectile/pie_0.png';
 
 const Resources = {
   clown: new ImageSource(clownSrc),
   dog: new ImageSource(dogSrc),
   strongman: new ImageSource(strongmanSrc),
+  pie: new ImageSource(pie),
 } as const;
 
 const loaderSprite = new Image();
