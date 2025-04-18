@@ -92,7 +92,7 @@ fn simulate(@builtin(global_invocation_id) global_invocation_id : vec3u) {
   var particle = data.particles[idx];
 
   // Apply gravity
-  particle.velocity.z = particle.velocity.z - sim_params.deltaTime * 0.5;
+  particle.velocity.z = particle.velocity.z - sim_params.deltaTime * 0.015;
 
   // Basic velocity integration
   particle.position = particle.position + sim_params.deltaTime * particle.velocity;
@@ -126,13 +126,10 @@ fn simulate(@builtin(global_invocation_id) global_invocation_id : vec3u) {
     let uv = vec2f(coord) / vec2f(textureDimensions(texture));
     particle.position = vec3f((uv - 0.5) * 3.0 * vec2f(1.0, -1.0), 0.0);
     particle.color = textureLoad(texture, coord, 0);
-    particle.color.r *= sim_params.brightnessFactor;
-    particle.color.g *= sim_params.brightnessFactor;
-    particle.color.b *= sim_params.brightnessFactor;
     particle.velocity.x = (rand() - 0.5) * 0.1;
     particle.velocity.y = (rand() - 0.5) * 0.1;
     particle.velocity.z = rand() * 0.3;
-    particle.lifetime = 0.5 + rand() * 3.0;
+    particle.lifetime = 0.5 + rand() * 2.0;
   }
 
   // Store the new particle value

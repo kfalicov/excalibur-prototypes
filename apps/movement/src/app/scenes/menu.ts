@@ -7,8 +7,7 @@ import { DogActor } from '../entities/dog';
 import { ControllableComponent } from '../components/controllable';
 import { ComboSystem } from '../systems/combo';
 import { ProjectileFactory } from '../utils/projectile-factory';
-
-import '../systems/web-gpu-particles';
+import { ParticleDisplayActor } from '../entities/particle-display-actor';
 
 class MenuScene extends Scene {
   projectileFactory = new ProjectileFactory(this);
@@ -63,6 +62,8 @@ class MenuScene extends Scene {
     });
     this.add(timer);
     timer.start();
+
+    this.add(new ParticleDisplayActor(120, 80));
   }
 }
 

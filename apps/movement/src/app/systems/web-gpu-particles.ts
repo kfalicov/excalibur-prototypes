@@ -6,17 +6,6 @@ import { quitIfWebGPUNotAvailable } from '../utils/webgpu';
 import { Tuple } from '../utils/frames';
 import pie from '../../assets/clown/stand_1.png';
 
-// Create a display canvas that will be added to the DOM
-const displayCanvas = document.createElement('canvas');
-displayCanvas.width = 128;
-displayCanvas.height = 128;
-displayCanvas.style.position = 'absolute';
-displayCanvas.style.top = '10px';
-displayCanvas.style.right = '10px';
-displayCanvas.style.border = '1px solid white';
-displayCanvas.style.zIndex = '1000';
-document.body.appendChild(displayCanvas);
-
 const numParticles = 50000;
 const particlePositionOffset = 0;
 const particleColorOffset = 4 * 4;
@@ -28,7 +17,7 @@ const particleInstanceByteSize =
   1 * 4 + // padding
   0;
 
-const canvas = new OffscreenCanvas(128, 128);
+const canvas = new OffscreenCanvas(64, 64);
 const adapter = await navigator.gpu?.requestAdapter({
   featureLevel: 'compatibility',
 });
@@ -101,18 +90,18 @@ const renderPipeline = device.createRenderPipeline({
     targets: [
       {
         format: presentationFormat,
-        blend: {
-          color: {
-            srcFactor: 'src-alpha',
-            dstFactor: 'one',
-            operation: 'add',
-          },
-          alpha: {
-            srcFactor: 'zero',
-            dstFactor: 'one',
-            operation: 'add',
-          },
-        },
+        // blend: {
+        //   color: {
+        //     srcFactor: 'src-alpha',
+        //     dstFactor: 'one',
+        //     operation: 'add',
+        //   },
+        //   alpha: {
+        //     srcFactor: 'zero',
+        //     dstFactor: 'one',
+        //     operation: 'add',
+        //   },
+        // },
       },
     ],
   },
@@ -315,7 +304,7 @@ const simulationParams = {
   simulate: true,
   deltaTime: 0.04,
   toneMappingMode: 'standard' as GPUCanvasToneMappingMode,
-  brightnessFactor: 1.0,
+  brightnessFactor: 1,
 };
 
 const simulationUBOBufferSize =
@@ -399,11 +388,11 @@ function frame() {
       mvp[8], mvp[9], mvp[10], mvp[11],
       mvp[12], mvp[13], mvp[14], mvp[15],
 
-      view[0]!, view[4]!, view[8]!, // right
+      view[0], view[4], view[8], // right
 
       0, // padding
 
-      view[1]!, view[5]!, view[9]!, // up
+      view[1], view[5], view[9], // up
 
       0 // padding
     ])
@@ -437,22 +426,19 @@ function frame() {
   }
 
   device.queue.submit([commandEncoder.finish()]);
-
-  // Stream the OffscreenCanvas content to the display canvas
-  const ctx = displayCanvas.getContext('2d');
-  if (ctx) {
-    // Draw the OffscreenCanvas onto the display canvas
-    ctx.drawImage(canvas, 0, 0, displayCanvas.width, displayCanvas.height);
-  }
-
-  requestAnimationFrame(frame);
 }
 
 configureContext();
-requestAnimationFrame(frame);
 
 function assert(cond: boolean, msg = '') {
   if (!cond) {
     throw new Error(msg);
   }
 }
+
+const ParticleSystem = {
+  canvas,
+  update: frame,
+};
+
+export { ParticleSystem };

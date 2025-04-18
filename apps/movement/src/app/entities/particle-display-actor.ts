@@ -1,28 +1,27 @@
-import { Actor, ImageSource, Vector } from 'excalibur';
+import { Actor, Canvas, Engine, Vector } from 'excalibur';
 
-export class ParticleDisplayActor extends Actor {
-  private canvasTexture: ImageSource;
-  private offscreenCanvas: OffscreenCanvas;
-  
-  constructor(offscreenCanvas: OffscreenCanvas, x: number, y: number, width: number, height: number) {
+import { ParticleSystem } from '../systems/web-gpu-particles';
+
+class ParticleDisplayActor extends Actor {
+  constructor(x: number, y: number, width: number, height: number) {
     super({
       pos: new Vector(x, y),
-      width: width,
-      height: height
     });
-    
-    this.offscreenCanvas = offscreenCanvas;
-    // Create an ImageSource from the canvas
-    this.canvasTexture = new ImageSource(this.offscreenCanvas);
   }
-  
+
+  onInitialize(engine: Engine) {
+    const canvas = new Canvas({
+      width: 128,
+      height: 128,
+      cache: false,
+      draw: (ctx) => ctx.drawImage(ParticleSystem.canvas, 0, 0),
+    });
+    this.graphics.use(canvas);
+  }
+
   onPreUpdate(engine, delta) {
-    super.onPreUpdate(engine, delta);
-    
-    // Update the texture with the latest canvas content
-    this.canvasTexture.refresh();
-    
-    // Use the updated texture as the graphic
-    this.graphics.use(this.canvasTexture.toSprite());
+    ParticleSystem.update();
   }
 }
+
+export { ParticleDisplayActor };
