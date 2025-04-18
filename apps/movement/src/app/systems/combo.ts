@@ -118,7 +118,9 @@ class ComboSystem extends System {
     return this.input.keyboard.isHeld(key) ? 1 : 0;
   }
 
-  checkCombo(combo: number[]) {}
+  checkCombo(combo: number[]) {
+    // console.log(combo);
+  }
 }
 
 export { ComboSystem };

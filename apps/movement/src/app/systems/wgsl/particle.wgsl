@@ -54,8 +54,8 @@ fn vs_main(in : VertexInput) -> VertexOutput {
 @fragment
 fn fs_main(in : VertexOutput) -> @location(0) vec4f {
   var color = in.color;
-  // Apply a circular particle alpha mask
-//  color.a = color.a * max(1.0 - length(in.quad_pos), 0.0);
+  // Ensure full alpha with no blending, only occlusion
+  color.a = 1.0;
   return color;
 }
 
@@ -97,9 +97,13 @@ fn simulate(@builtin(global_invocation_id) global_invocation_id : vec3u) {
   // Basic velocity integration
   particle.position = particle.position + sim_params.deltaTime * particle.velocity;
 
-  // Age each particle. Fade out before vanishing.
+  // Age each particle
   particle.lifetime = particle.lifetime - sim_params.deltaTime;
-  particle.color.a = smoothstep(0.0, 0.5, particle.lifetime);
+
+  // Adjust z-position based on lifetime - older particles move further back
+  // This ensures newer particles are rendered in front of older ones
+  // The max lifetime is around 2.5 (0.5 + rand() * 2.0), so we scale accordingly
+  particle.position.z = particle.position.z - (2.5 - particle.lifetime) * 0.05;
 
   // If the lifetime has gone negative, then the particle is dead and should be
   // respawned.
@@ -126,8 +130,8 @@ fn simulate(@builtin(global_invocation_id) global_invocation_id : vec3u) {
     let uv = vec2f(coord) / vec2f(textureDimensions(texture));
     particle.position = vec3f((uv - 0.5) * 3.0 * vec2f(1.0, -1.0), 0.0);
     particle.color = textureLoad(texture, coord, 0);
-    particle.velocity.x = (rand() - 0.5) * 0.1;
-    particle.velocity.y = (rand() - 0.5) * 0.1;
+    particle.velocity.x = (rand() - 0.5) * 0.5;
+    particle.velocity.y = (rand() - 0.5) * 0.5;
     particle.velocity.z = rand() * 0.3;
     particle.lifetime = 0.5 + rand() * 2.0;
   }

@@ -15,6 +15,7 @@ class Projectile extends Actor {
     y: number,
     dx: number,
     dy: number,
+    size: 0 | 1 | 2,
     collisionGroup: _CollisionGroup,
   ) {
     super({
@@ -26,7 +27,17 @@ class Projectile extends Actor {
       collisionGroup: collisionGroup,
       color: Color.Black,
     });
-    this.graphics.use(Resources.pie.toSprite());
+    switch (size) {
+      case 0:
+        this.graphics.use(Resources.pie_sm.toSprite());
+        break;
+      case 1:
+        this.graphics.use(Resources.pie_md.toSprite());
+        break;
+      case 2:
+        this.graphics.use(Resources.pie_lg.toSprite());
+        break;
+    }
     this.graphics.offset = vec(8, -3);
     this.on('collisionstart', () => this.kill());
     this.actions.repeatForever((repeatCtx) => {
@@ -38,13 +49,14 @@ class Projectile extends Actor {
 class ProjectileFactory {
   constructor(private scene: Scene) {}
 
-  spawn(x: number, y: number, dx, dy) {
+  spawn(x: number, y: number, dx, dy, size: 0 | 1 | 2) {
     console.log(x, y);
     const projectile = new Projectile(
       x,
       y,
       dx,
       dy,
+      size,
       CollisionGroup.PlayerProjectile,
     );
     this.scene.add(projectile);

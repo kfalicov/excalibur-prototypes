@@ -16,6 +16,7 @@ import { clownSheet } from '../resources/resources';
 import { PlayerAnimStateMachine, State, States } from './player-anim-state';
 import { generateFramesByName, isTupleOfAtLeast } from '../utils/frames';
 import { ControllableComponent } from '../components/controllable';
+import { PieThrowAbility } from '../components/ability/pie';
 
 const stand = new Animation({
   frames: generateFramesByName(clownSheet, 0, 5, 'stand_').map((i) => ({
@@ -91,6 +92,8 @@ class PlayerActor extends Actor {
     this.addComponent(playerMobility);
     this.addComponent(new TouchingComponent());
 
+    const ability = new PieThrowAbility();
+    this.addComponent(ability);
     this.addComponent(new ControllableComponent());
 
     const outlineMaterial = engine.graphicsContext.createMaterial({
@@ -102,7 +105,14 @@ class PlayerActor extends Actor {
     this.graphics.material = outlineMaterial;
 
     this.graphics.onPreDraw = () => {
-      if (!playerMobility.aiming && Math.abs(this.body.vel.x) > 0.5) {
+      /**
+       * defer rendering to the ability component. Don't use default state
+       * management to render the character
+       */
+      if (ability.locks.graphics) {
+        return;
+      }
+      if (Math.abs(this.body.vel.x) > 0.5) {
         this.graphics.flipHorizontal = this.body.vel.x < 0;
       }
       /**
@@ -112,8 +122,6 @@ class PlayerActor extends Actor {
       this.graphics.offset = vec(0, 0);
 
       const mobility = this.get(MobilityComponent);
-
-      // console.log(PlayerAnimStateMachine.currentState.name);
 
       switch (PlayerAnimStateMachine.currentState.name) {
         case States.wallsplat:

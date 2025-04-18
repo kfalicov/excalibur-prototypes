@@ -13,13 +13,25 @@ import dogSrc from '../../assets/dog.png';
 import dogViews from '../../assets/dog.json';
 import strongmanSrc from '../../assets/strongman.png';
 import strongmanViews from '../../assets/strongman.json';
-import pie from '../../assets/projectile/pie_0.png';
+import pie_sm from '../../assets/projectile/pie_0.png';
+import pie_md from '../../assets/projectile/pie_1.png';
+import pie_lg from '../../assets/projectile/pie_2.png';
+
+/**
+ * TODO move these to a spritesheet for the pie ability or the base clown sheet
+ */
+import windupSrc from '../../assets/clown/throw_0.png';
+import throwSrc from '../../assets/clown/throw_1.png';
 
 const Resources = {
   clown: new ImageSource(clownSrc),
+  windup: new ImageSource(windupSrc),
+  toss: new ImageSource(throwSrc),
   dog: new ImageSource(dogSrc),
   strongman: new ImageSource(strongmanSrc),
-  pie: new ImageSource(pie),
+  pie_sm: new ImageSource(pie_sm),
+  pie_md: new ImageSource(pie_md),
+  pie_lg: new ImageSource(pie_lg),
 } as const;
 
 const loaderSprite = new Image();
@@ -145,7 +157,7 @@ const strongmanSheet = SpriteSheet.fromImageSourceWithSourceViews({
 });
 
 for (const res in Resources) {
-  loader.addResource((Resources as any)[res]);
+  loader.addResource(Resources[res as keyof typeof Resources]);
 }
 
 export { Resources, loader, clownSheet, dogSheet, strongmanSheet };

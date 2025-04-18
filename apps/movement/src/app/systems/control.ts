@@ -1,5 +1,4 @@
 import {
-  Actor,
   Axes,
   BodyComponent,
   Buttons,
@@ -18,7 +17,7 @@ import {
 import { MobilityComponent } from '../components/mobility';
 import { TouchingComponent } from '../components/touching';
 import { ControllableComponent } from '../components/controllable';
-import { Resources } from '../resources/resources';
+import { PieThrowAbility } from '../components/ability/pie';
 
 type Intent = {
   Left: boolean;
@@ -85,7 +84,13 @@ class ControlSystem extends System {
       const controllable = entity.get(ControllableComponent);
       const mobility = entity.get(MobilityComponent);
       const body = entity.get(BodyComponent);
-      if (!controllable.enabled) {
+
+      const ability = entity.get(PieThrowAbility);
+      if (ability) {
+        ability.compute(intent);
+      }
+
+      if (!controllable.enabled || ability?.locks.physics) {
         body.acc = vec(0, mobility.gravity);
         body.vel.x *= mobility.damp.x;
         continue;
@@ -119,46 +124,7 @@ class ControlSystem extends System {
           y = -mobility.jump;
         }
       }
-      if (intent.Attack) {
-        mobility.aiming = true;
-        if (intent.Left || intent.Right) {
-          entity.graphics.flipHorizontal = intent.Left;
-        }
-        body.acc.x = 0;
-        if (!this.previousIntent.Attack) {
-          const heldPie = new Actor({ pos: vec(0, 0), name: 'pie' });
-          heldPie.offset = entity.graphics.flipHorizontal
-            ? vec(8, -20)
-            : vec(-8, -20);
-          // heldPie.graphics.anchor = vec(0.3, 0.5);
-          heldPie.actions.repeatForever((repeatCtx) => {
-            repeatCtx.callMethod(() => {
-              heldPie.graphics.flipHorizontal = entity.graphics.flipHorizontal;
-              heldPie.offset = entity.graphics.flipHorizontal
-                ? vec(8, -20)
-                : vec(-8, -20);
-            });
-            repeatCtx.moveTo(
-              vec(Math.random() * 1 - 1, Math.random() * 1 - 1),
-              50,
-            );
-          });
-          heldPie.graphics.use(Resources.pie.toSprite());
-          entity.addChild(heldPie);
-        }
-        entity.state = 'plummet';
-      } else if (this.previousIntent.Attack) {
-        entity.removeAllChildren();
-        const vel = computeThrow(intent, entity.graphics.flipHorizontal);
-        this.scene.projectileFactory.spawn(
-          body.center.x,
-          body.center.y - 10,
-          vel.x,
-          vel.y,
-          !entity.graphics.flipHorizontal,
-        );
-        entity.state = 'prejump';
-      }
+
       x = clamp(x, -mobility.max.x, mobility.max.x);
       body.vel = new Vector(x, y);
     }
@@ -205,22 +171,6 @@ class ControlSystem extends System {
     ].find((g) => g.connected);
   }
 }
-
-const computeThrow = (intent: Intent, flip: boolean) => {
-  if (intent.Right || intent.Left) {
-    return vec(flip ? -280 : 280, -150);
-    // use low angle
-  } else if (intent.Up) {
-    return vec(flip ? -30 : 30, -400);
-    //use vertical
-  } else if (intent.Down) {
-    //use diagonal down
-    return vec(flip ? -210 : 210, 70);
-  } else {
-    //default direction based on flip
-    return vec(flip ? -90 : 90, -300);
-  }
-};
 
 const axisMapping: Partial<
   Record<'Left' | 'Right' | 'Up' | 'Down' | 'Jump' | 'Attack', number>

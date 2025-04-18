@@ -93,12 +93,12 @@ const renderPipeline = device.createRenderPipeline({
         format: presentationFormat,
         blend: {
           color: {
-            srcFactor: 'src',
+            srcFactor: 'one',
             dstFactor: 'zero',
             operation: 'add',
           },
           alpha: {
-            srcFactor: 'src',
+            srcFactor: 'one',
             dstFactor: 'zero',
             operation: 'add',
           },
