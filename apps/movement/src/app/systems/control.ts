@@ -127,11 +127,20 @@ class ControlSystem extends System {
         body.acc.x = 0;
         if (!this.previousIntent.Attack) {
           const heldPie = new Actor({ pos: vec(0, 0), name: 'pie' });
-          heldPie.offset = vec(2, -16);
+          heldPie.offset = entity.graphics.flipHorizontal
+            ? vec(8, -20)
+            : vec(-8, -20);
+          // heldPie.graphics.anchor = vec(0.3, 0.5);
           heldPie.actions.repeatForever((repeatCtx) => {
+            repeatCtx.callMethod(() => {
+              heldPie.graphics.flipHorizontal = entity.graphics.flipHorizontal;
+              heldPie.offset = entity.graphics.flipHorizontal
+                ? vec(8, -20)
+                : vec(-8, -20);
+            });
             repeatCtx.moveTo(
               vec(Math.random() * 1 - 1, Math.random() * 1 - 1),
-              100,
+              50,
             );
           });
           heldPie.graphics.use(Resources.pie.toSprite());

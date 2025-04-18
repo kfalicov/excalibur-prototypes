@@ -32,6 +32,9 @@ dependencies:
   tslib:
     specifier: ^2.8.1
     version: 2.8.1
+  wgpu-matrix:
+    specifier: ^3.4.0
+    version: 3.4.0
 
 devDependencies:
   '@eslint/js':
@@ -130,6 +133,9 @@ devDependencies:
   '@vitest/ui':
     specifier: ^3.0.8
     version: 3.0.8(vitest@3.0.8)
+  '@webgpu/types':
+    specifier: ^0.1.60
+    version: 0.1.60
   cypress:
     specifier: 14.1.0
     version: 14.1.0
@@ -6845,6 +6851,10 @@ packages:
     dependencies:
       '@webassemblyjs/ast': 1.14.1
       '@xtuc/long': 4.2.2
+    dev: true
+
+  /@webgpu/types@0.1.60:
+    resolution: {integrity: sha512-8B/tdfRFKdrnejqmvq95ogp8tf52oZ51p3f4QD5m5Paey/qlX4Rhhy5Y8tgFMi7Ms70HzcMMw3EQjH/jdhTwlA==}
     dev: true
 
   /@webpack-cli/configtest@3.0.1(webpack-cli@6.0.1)(webpack@5.97.1):
@@ -16495,6 +16505,10 @@ packages:
     resolution: {integrity: sha512-OqedPIGOfsDlo31UNwYbCFMSaO9m9G/0faIHj5/dZFDMFqPTcx6UwqyOy3COEaEOg/9VsGIpdqn62W5KhoKSpg==}
     engines: {node: '>=0.8.0'}
     dev: true
+
+  /wgpu-matrix@3.4.0:
+    resolution: {integrity: sha512-kXHrbAPKEn9A32Wf4wVldyx9MmnzwhuB5p8GCqoJP3ItU5+iDT4J3aTQwPZWkfb153hwGtqZtUwR2M+ipJKadg==}
+    dev: false
 
   /whatwg-encoding@2.0.0:
     resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}

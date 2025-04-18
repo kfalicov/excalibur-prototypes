@@ -8,6 +8,8 @@ import { ControllableComponent } from '../components/controllable';
 import { ComboSystem } from '../systems/combo';
 import { ProjectileFactory } from '../utils/projectile-factory';
 
+import '../systems/web-gpu-particles';
+
 class MenuScene extends Scene {
   projectileFactory = new ProjectileFactory(this);
 

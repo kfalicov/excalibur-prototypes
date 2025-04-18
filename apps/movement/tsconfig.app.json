@@ -1,9 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "target": "es2017",
     "outDir": "../../dist/out-tsc",
     "types": [
-      "node"
+      "node",
+      "@webgpu/types"
     ],
     "resolveJsonModule": true,
     "esModuleInterop": true,

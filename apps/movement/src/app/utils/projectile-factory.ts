@@ -27,7 +27,7 @@ class Projectile extends Actor {
       color: Color.Black,
     });
     this.graphics.use(Resources.pie.toSprite());
-    this.graphics.offset = vec(4, -3);
+    this.graphics.offset = vec(8, -3);
     this.on('collisionstart', () => this.kill());
     this.actions.repeatForever((repeatCtx) => {
       repeatCtx.rotateBy(Math.PI, Math.PI * 2, RotationType.Clockwise);
