@@ -27,12 +27,13 @@ quitIfWebGPUNotAvailable(adapter, device ?? null);
 
 const context = canvas.getContext('webgpu') as GPUCanvasContext;
 
-const presentationFormat = 'rgba16float';
+const presentationFormat = 'rgba8unorm';
 
 function configureContext() {
   context.configure({
     device,
     format: presentationFormat,
+    alphaMode: 'premultiplied',
     toneMapping: { mode: simulationParams.toneMappingMode },
   });
 }
@@ -90,18 +91,18 @@ const renderPipeline = device.createRenderPipeline({
     targets: [
       {
         format: presentationFormat,
-        // blend: {
-        //   color: {
-        //     srcFactor: 'src-alpha',
-        //     dstFactor: 'one',
-        //     operation: 'add',
-        //   },
-        //   alpha: {
-        //     srcFactor: 'zero',
-        //     dstFactor: 'one',
-        //     operation: 'add',
-        //   },
-        // },
+        blend: {
+          color: {
+            srcFactor: 'src',
+            dstFactor: 'zero',
+            operation: 'add',
+          },
+          alpha: {
+            srcFactor: 'src',
+            dstFactor: 'zero',
+            operation: 'add',
+          },
+        },
       },
     ],
   },
@@ -110,7 +111,7 @@ const renderPipeline = device.createRenderPipeline({
   },
 
   depthStencil: {
-    depthWriteEnabled: false,
+    depthWriteEnabled: true,
     depthCompare: 'less',
     format: 'depth24plus',
   },
@@ -128,6 +129,7 @@ const uniformBufferSize =
   4 + // padding
   3 * 4 + // up : vec3f
   4 + // padding
+  4 + // brightnessFactor
   0;
 const uniformBuffer = device.createBuffer({
   size: uniformBufferSize,
@@ -304,7 +306,7 @@ const simulationParams = {
   simulate: true,
   deltaTime: 0.04,
   toneMappingMode: 'standard' as GPUCanvasToneMappingMode,
-  brightnessFactor: 1,
+  brightnessFactor: 2.0,
 };
 
 const simulationUBOBufferSize =
@@ -394,7 +396,9 @@ function frame() {
 
       view[1], view[5], view[9], // up
 
-      0 // padding
+      0, // padding
+
+      simulationParams.brightnessFactor // brightnessFactor
     ])
   );
   const swapChainTexture = context.getCurrentTexture();
@@ -402,7 +406,7 @@ function frame() {
   (renderPassDescriptor.colorAttachments as GPURenderPassColorAttachment[])[0] =
     {
       view: swapChainTexture.createView(),
-      clearValue: [0, 0, 0, 1],
+      clearValue: [0, 0, 0, 0],
       loadOp: 'clear',
       storeOp: 'store',
     };

@@ -21,7 +21,7 @@ fn rand() -> f32 {
 struct RenderParams {
   modelViewProjectionMatrix : mat4x4f,
   right : vec3f,
-  up : vec3f
+  up : vec3f,
 }
 @binding(0) @group(0) var<uniform> render_params : RenderParams;
 
@@ -55,7 +55,7 @@ fn vs_main(in : VertexInput) -> VertexOutput {
 fn fs_main(in : VertexOutput) -> @location(0) vec4f {
   var color = in.color;
   // Apply a circular particle alpha mask
-  color.a = color.a * max(1.0 - length(in.quad_pos), 0.0);
+//  color.a = color.a * max(1.0 - length(in.quad_pos), 0.0);
   return color;
 }
 

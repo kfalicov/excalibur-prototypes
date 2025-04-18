@@ -16,6 +16,9 @@ class MenuScene extends Scene {
     const gl = this.engine.canvas.getContext('webgl2');
     if (!gl) throw new Error('WebGL2 not supported');
     // new Shader({ fragmentSource, vertexSource, gl });
+
+    this.add(new ParticleDisplayActor(120, 60));
+
     const p = new PlayerActor();
     p.body.enableFixedUpdateInterpolate = false;
 
@@ -62,8 +65,6 @@ class MenuScene extends Scene {
     });
     this.add(timer);
     timer.start();
-
-    this.add(new ParticleDisplayActor(120, 80));
   }
 }
 

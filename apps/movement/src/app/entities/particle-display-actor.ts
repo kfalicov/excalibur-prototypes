@@ -3,7 +3,7 @@ import { Actor, Canvas, Engine, Vector } from 'excalibur';
 import { ParticleSystem } from '../systems/web-gpu-particles';
 
 class ParticleDisplayActor extends Actor {
-  constructor(x: number, y: number, width: number, height: number) {
+  constructor(x: number, y: number) {
     super({
       pos: new Vector(x, y),
     });
@@ -14,7 +14,9 @@ class ParticleDisplayActor extends Actor {
       width: 128,
       height: 128,
       cache: false,
-      draw: (ctx) => ctx.drawImage(ParticleSystem.canvas, 0, 0),
+      draw: (ctx) => {
+        ctx.drawImage(ParticleSystem.canvas, 0, 0);
+      },
     });
     this.graphics.use(canvas);
   }
