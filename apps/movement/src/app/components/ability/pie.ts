@@ -24,45 +24,89 @@ const c = new Circle({ color: Color.White, radius: 2 });
 
 const group = new GraphicsGroup({
   useAnchor: false,
-  members: [
-    {
-      graphic: c,
-      offset: vec(0, 0),
-    },
-    {
-      graphic: c,
-      offset: vec(0, 0),
-    },
-    {
-      graphic: c,
-      offset: vec(0, 0),
-    },
-    {
-      graphic: c,
-      offset: vec(0, 0),
-    },
-    {
-      graphic: c,
-      offset: vec(0, 0),
-    },
-    {
-      graphic: c,
-      offset: vec(0, 0),
-    },
-    {
-      graphic: c,
-      offset: vec(0, 0),
-    },
-  ] as GraphicsGrouping[],
+  members: new Array(16).fill(null).map(
+    () =>
+      ({
+        graphic: c,
+        offset: vec(0, 0),
+      }) as GraphicsGrouping,
+  ),
 });
 
 const GRAV = 1000;
 const adjustGroup = (vel: Vector) => {
-  for (let i = 0; i < group.members.length; i++) {
-    const t = (i / group.members.length) * 0.75;
-    const x = 0 + vel.x * t;
-    const y = 0 + vel.y * t + 0.5 * GRAV * t * t;
-    (group.members[i] as GraphicsGrouping).offset = vec(x, y);
+  // Use a fixed maximum distance instead of time
+  const maxDistance = 150; // Maximum distance to show in the trajectory
+  const timeStep = 0.01; // Small time step for accurate trajectory calculation
+  const points: Vector[] = [];
+  let totalLength = 0;
+
+  // Generate points along the trajectory until we reach maxDistance
+  let t = 0;
+  let lastPoint = vec(0, 0);
+  points.push(lastPoint);
+
+  while (totalLength < maxDistance) {
+    t += timeStep;
+    const x = vel.x * t;
+    const y = vel.y * t + 0.5 * GRAV * t * t;
+    const currentPoint = vec(x, y);
+
+    const segmentLength = currentPoint.distance(lastPoint);
+    totalLength += segmentLength;
+
+    points.push(currentPoint);
+    lastPoint = currentPoint;
+  }
+
+  // Calculate the desired segment length for equal spacing
+  const segmentLength = totalLength / (group.members.length - 1);
+
+  // Place the first point at the start
+  (group.members[0] as GraphicsGrouping).offset = vec(0, 0);
+
+  // Place remaining points at equal distances
+  let currentLength = 0;
+  let currentIndex = 1;
+  let prevPoint = points[0];
+
+  for (
+    let i = 1;
+    i < points.length && currentIndex < group.members.length;
+    i++
+  ) {
+    const segmentDistance = points[i].distance(prevPoint);
+
+    // If adding this segment would exceed the next target length
+    while (
+      currentLength + segmentDistance >= segmentLength * currentIndex &&
+      currentIndex < group.members.length
+    ) {
+      // Calculate how far along this segment the point should be
+      const remainingLength = segmentLength * currentIndex - currentLength;
+      const ratio = remainingLength / segmentDistance;
+
+      // Interpolate between the previous point and current point
+      const x = prevPoint.x + (points[i].x - prevPoint.x) * ratio;
+      const y = prevPoint.y + (points[i].y - prevPoint.y) * ratio;
+
+      (group.members[currentIndex] as GraphicsGrouping).offset = vec(x, y);
+      currentIndex++;
+    }
+
+    currentLength += segmentDistance;
+    prevPoint = points[i];
+  }
+
+  // If we didn't place all points (could happen due to numerical precision)
+  // place remaining points at the end of the trajectory
+  while (currentIndex < group.members.length) {
+    const lastPoint = points[points.length - 1];
+    (group.members[currentIndex] as GraphicsGrouping).offset = vec(
+      lastPoint.x,
+      lastPoint.y,
+    );
+    currentIndex++;
   }
 };
 
@@ -201,7 +245,7 @@ const computeThrow = (intent: Intent, flip: boolean) => {
     // return vec(flip ? -210 : 210, 70);
   } else {
     return Vector.fromAngle(flip ? -(3 * Math.PI) / 4 : -Math.PI / 4).scale(
-      300,
+      250,
     );
     //default direction based on flip
     // return vec(flip ? -90 : 90, -300);
