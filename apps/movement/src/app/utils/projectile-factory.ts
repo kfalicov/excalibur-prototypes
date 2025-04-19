@@ -2,7 +2,6 @@ import {
   Actor,
   CollisionGroup as _CollisionGroup,
   Color,
-  RotationType,
   Scene,
   vec,
 } from 'excalibur';
@@ -39,10 +38,11 @@ class Projectile extends Actor {
         break;
     }
     this.graphics.offset = vec(8, -3);
+    this.graphics.anchor = vec(0.5, 0.5);
     this.on('collisionstart', () => this.kill());
-    this.actions.repeatForever((repeatCtx) => {
-      repeatCtx.rotateBy(Math.PI, Math.PI * 2, RotationType.Clockwise);
-    });
+    // this.actions.repeatForever((repeatCtx) => {
+    //   repeatCtx.rotateBy(Math.PI, Math.PI * 2, RotationType.Clockwise);
+    // });
   }
 }
 

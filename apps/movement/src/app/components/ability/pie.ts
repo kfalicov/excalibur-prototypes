@@ -1,4 +1,14 @@
-import { Actor, BodyComponent, Component, vec } from 'excalibur';
+import {
+  Actor,
+  BodyComponent,
+  Circle,
+  Color,
+  Component,
+  GraphicsGroup,
+  GraphicsGrouping,
+  vec,
+  Vector,
+} from 'excalibur';
 import { Resources } from '../../resources/resources';
 import { PieAnimStateMachine } from './pie-anim-state';
 
@@ -8,6 +18,52 @@ type Intent = {
   Up: boolean;
   Down: boolean;
   Attack: boolean;
+};
+
+const c = new Circle({ color: Color.White, radius: 2 });
+
+const group = new GraphicsGroup({
+  useAnchor: false,
+  members: [
+    {
+      graphic: c,
+      offset: vec(0, 0),
+    },
+    {
+      graphic: c,
+      offset: vec(0, 0),
+    },
+    {
+      graphic: c,
+      offset: vec(0, 0),
+    },
+    {
+      graphic: c,
+      offset: vec(0, 0),
+    },
+    {
+      graphic: c,
+      offset: vec(0, 0),
+    },
+    {
+      graphic: c,
+      offset: vec(0, 0),
+    },
+    {
+      graphic: c,
+      offset: vec(0, 0),
+    },
+  ] as GraphicsGrouping[],
+});
+
+const GRAV = 1000;
+const adjustGroup = (vel: Vector) => {
+  for (let i = 0; i < group.members.length; i++) {
+    const t = (i / group.members.length) * 0.75;
+    const x = 0 + vel.x * t;
+    const y = 0 + vel.y * t + 0.5 * GRAV * t * t;
+    (group.members[i] as GraphicsGrouping).offset = vec(x, y);
+  }
 };
 
 /**
@@ -34,13 +90,19 @@ class PieThrowAbility extends Component {
   };
   heldPie: Actor | null = null;
   charge = 0;
+  angleDisplay: Actor;
 
   constructor() {
     super();
+    this.angleDisplay = new Actor({ pos: vec(0, -10), name: 'angleDisplay' });
+    this.angleDisplay.graphics.anchor = Vector.Zero;
+    this.angleDisplay.graphics.use(group);
   }
 
   onAdd(owner: Actor) {
     super.onAdd?.(owner);
+    owner.addChild(this.angleDisplay);
+    this.angleDisplay.pos = vec(0, -10);
   }
 
   compute(intent: Intent) {
@@ -48,12 +110,18 @@ class PieThrowAbility extends Component {
     if (!entity || !entity.has(BodyComponent)) return;
     const body = entity.get(BodyComponent);
     this.locks.physics = false;
+    c.color = Color.Transparent;
     if (intent.Attack) {
+      c.color = Color.White;
       this.locks.graphics = true;
       this.locks.physics = true;
       if (intent.Left || intent.Right) {
         entity.graphics.flipHorizontal = intent.Left;
       }
+
+      const vel = computeThrow(intent, entity.graphics.flipHorizontal);
+      adjustGroup(vel);
+
       PieAnimStateMachine.go('windup');
       this.charge++;
       if (!this.previousIntent.Attack) {
@@ -80,9 +148,9 @@ class PieThrowAbility extends Component {
         entity.addChild(this.heldPie);
       }
     } else if (this.previousIntent.Attack) {
+      const vel = computeThrow(intent, entity.graphics.flipHorizontal);
       PieAnimStateMachine.go('toss');
       entity.removeChild(this.heldPie);
-      const vel = computeThrow(intent, entity.graphics.flipHorizontal);
       this.owner.scene?.projectileFactory.spawn(
         body.center.x,
         body.center.y - 10,
@@ -121,18 +189,22 @@ class PieThrowAbility extends Component {
 }
 
 const computeThrow = (intent: Intent, flip: boolean) => {
-  if (intent.Right || intent.Left) {
-    return vec(flip ? -280 : 280, -150);
-    // use low angle
-  } else if (intent.Up) {
-    return vec(flip ? -30 : 30, -400);
+  if (intent.Up) {
+    return Vector.fromAngle(
+      flip ? (-6 * Math.PI) / 11 : (-5 * Math.PI) / 11,
+    ).scale(350);
+    // return vec(flip ? -30 : 30, -400);
     //use vertical
   } else if (intent.Down) {
+    return Vector.fromAngle(flip ? (5 * Math.PI) / 6 : Math.PI / 6).scale(200);
     //use diagonal down
-    return vec(flip ? -210 : 210, 70);
+    // return vec(flip ? -210 : 210, 70);
   } else {
+    return Vector.fromAngle(flip ? -(3 * Math.PI) / 4 : -Math.PI / 4).scale(
+      300,
+    );
     //default direction based on flip
-    return vec(flip ? -90 : 90, -300);
+    // return vec(flip ? -90 : 90, -300);
   }
 };
 
