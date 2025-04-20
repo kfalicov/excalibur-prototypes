@@ -102,9 +102,19 @@ class PlayerActor extends Actor {
       vertexSource,
     });
 
+    // Set the outline radius uniform
+    outlineMaterial.update((shader) =>
+      shader.trySetUniformInt('u_outline_radius', 2),
+    );
+
     this.graphics.material = outlineMaterial;
 
     this.graphics.onPreDraw = () => {
+      /**
+       * set the offset of the graphics back to nothing.
+       * TODO this will eventually be per-frame to assist with animation
+       */
+      this.graphics.offset = vec(0, 0);
       /**
        * defer rendering to the ability component. Don't use default state
        * management to render the character
@@ -115,11 +125,6 @@ class PlayerActor extends Actor {
       if (Math.abs(this.body.vel.x) > 0.5) {
         this.graphics.flipHorizontal = this.body.vel.x < 0;
       }
-      /**
-       * set the offset of the graphics back to nothing.
-       * TODO this will eventually be per-frame to assist with animation
-       */
-      this.graphics.offset = vec(0, 0);
 
       const mobility = this.get(MobilityComponent);
 
@@ -207,51 +212,5 @@ class PlayerActor extends Actor {
     PlayerAnimStateMachine.data.timeInCurrentState++;
   }
 }
-
-/**
- * if (touching[Side.Bottom].size > 0) {
- *       //moving a minimum speed to start animation
- *       if (Math.abs(this.body.vel.x) > mobility.acc.x / 40) {
- *         if (this.graphics.current !== walk) {
- *           walk.goToFrame(2);
- *           this.graphics.use(walk);
- *         }
- *         const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
- *         //@ts-expect-error speed exists as long as the player always has an animation active
- *         this.graphics.current.speed = 0.5 + percentOfMax * 1.5;
- *       } else {
- *         //moving below minimum walk speed but accelerating
- *         if (Math.abs(this.body.acc.x) > 0) {
- *           //blocked by an obstacle in the direction of travel
- *           if (touching[this.body.acc.x < 0 ? Side.Left : Side.Right].size > 0) {
- *             if (this.bonked) this.graphics.use(stand);
- *             else {
- *               this.bonked = true;
- *               console.log('bonk');
- *             }
- *             //TODO bonk animation and then stand
- *             //not blocked, currently moving, but accelerating opposite the direction of travel
- *           } else if (
- *             Math.abs(this.body.vel.x) > 0.5 &&
- *             Math.sign(this.body.acc.x) === -1 * Math.sign(this.body.vel.x)
- *           ) {
- *             console.log('skrrt');
- *             //TODO screech/skid
- *           } else {
- *             this.bonked = false;
- *             console.log('zoom');
- *             walk.goToFrame(2);
- *             this.graphics.use(walk);
- *           }
- *           //slowed below min speed but not accelerating in any direction
- *         } else {
- *           this.bonked = false;
- *           this.graphics.use(stand);
- *         }
- *       }
- *     } else {
- *       this.graphics.use(tumble);
- *     }
- */
 
 export { PlayerActor };

@@ -83,6 +83,11 @@ class DogActor extends Actor {
       vertexSource,
     });
 
+    // Set the outline radius uniform
+    outlineMaterial.update((shader) =>
+      shader.trySetUniformInt('u_outline_radius', 2),
+    );
+
     this.graphics.material = outlineMaterial;
   }
 
