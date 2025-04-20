@@ -42,6 +42,7 @@ const walk = new Animation({
 class StrongmanActor extends Actor {
   state: State = States.stand;
   timeInState = 0;
+  name = 'strongman';
 
   constructor({ x = 120, y = 120 }: { x?: number; y?: number } = {}) {
     super({
@@ -53,7 +54,7 @@ class StrongmanActor extends Actor {
       // color constants
       color: Color.Black,
       collisionType: CollisionType.Active,
-      collisionGroup: CollisionGroup.Player,
+      collisionGroup: CollisionGroup.NonPlayer,
     });
     this.graphics.use(stand);
   }

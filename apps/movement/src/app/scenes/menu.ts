@@ -36,7 +36,7 @@ class MenuScene extends Scene {
     const strongmanControl = new ControllableComponent();
     strongmanControl.enabled = false;
     s.addComponent(strongmanControl);
-    // this.add(s);
+    this.add(s);
     const dog = new DogActor();
     // this.add(dog);
 

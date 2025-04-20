@@ -22,14 +22,6 @@ void main() {
     // a_position is in normalized device coordinates (-1 to 1)
     vec2 direction = normalize(a_position);
 
-    // Get the size of a pixel in NDC space
-    // This is derived from the inverse of the projection matrix (u_matrix)
-    // We're extracting the scale factors from the matrix
-    //    vec2 pixelSize = vec2(
-    //    2.0 / (u_matrix[0][0] * u_transform[0][0]),
-    //    2.0 / (u_matrix[1][1] * u_transform[1][1])
-    //    );
-    //    vec2 pixelSize = vec2(10.0, 1.0);
     vec2 computed_scale = (u_size + 2.*float(u_outline_radius))/u_size;
 
     // Scale the vertex position outward by u_outline_radius pixels
@@ -37,26 +29,11 @@ void main() {
 
     // Set the vertex position using the ortho & transform matrix
     gl_Position = u_matrix * u_transform * vec4(scaledPosition, 0.0, 1.0);
-
-    //    // Calculate how much the UVs need to be adjusted
-    //    // UVs go from 0 to 1, so we need to scale them inversely to the position scaling
-    //    vec2 uvDirection = a_uv - vec2(0.5, 0.5);// Direction from center in UV space
-    //    float uvLength = length(uvDirection);
-    //
-    //    if (uvLength > 0.0) {
-    //        uvDirection = normalize(uvDirection);
-    //    } else {
-    //        uvDirection = vec2(0.0, 0.0);
-    //    }
-    //
-    //    // Calculate UV adjustment based on the same pixel size we used for position
-    //    // This ensures proportional scaling without needing texture dimensions
-    //    float uvAdjustmentFactor = float(u_outline_radius) /
-    //    (0.5 * length(vec2(u_matrix[0][0] * u_transform[0][0],
-    //    u_matrix[1][1] * u_transform[1][1])));
+    gl_Position = u_matrix * u_transform * vec4(a_position, 0.0, 1.0);
 
     // Scale UVs outward from center
-    v_uv = a_uv * computed_scale;// - (pixelSize*float(u_outline_radius)/u_size);// - uvDirection * uvAdjustmentFactor;
+    v_uv = a_uv * computed_scale - (pixelSize*float(u_outline_radius)/u_size);
+    v_uv = a_uv;
 
     // Pass through the screen UV coord
     v_screenuv = a_screenuv;

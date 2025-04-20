@@ -25,6 +25,7 @@ const stand = new Animation({
   })),
   strategy: AnimationStrategy.PingPong,
 });
+
 if (isTupleOfAtLeast(stand.frames, 6)) {
   stand.frames[0].duration = 240;
   stand.frames[1].duration = 120;
