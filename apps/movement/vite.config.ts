@@ -24,4 +24,8 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
   },
+  test: {
+    setupFiles: ['./src/test-setup.ts'],
+    globals: true,
+  },
 });

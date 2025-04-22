@@ -6,7 +6,7 @@ import {
   Color,
   Engine,
   Scene,
-  vec
+  vec,
 } from 'excalibur';
 import { CollisionGroup } from './collision';
 import { Resources } from '../resources/resources';
@@ -18,7 +18,7 @@ class Projectile extends Actor {
     dx: number,
     dy: number,
     size: 0 | 1 | 2,
-    private collisionGroup: _CollisionGroup
+    private collisionGroup: _CollisionGroup,
   ) {
     super({
       pos: vec(x, y),
@@ -26,7 +26,7 @@ class Projectile extends Actor {
       width: 10,
       height: 10,
       acc: vec(0, 1000),
-      color: Color.Black
+      color: Color.Black,
     });
     switch (size) {
       case 0:
@@ -59,8 +59,7 @@ class Projectile extends Actor {
 }
 
 class ProjectileFactory {
-  constructor(private scene: Scene) {
-  }
+  constructor(private scene: Scene) {}
 
   spawn(x: number, y: number, dx: number, dy: number, size: 0 | 1 | 2) {
     const projectile = new Projectile(
@@ -69,10 +68,10 @@ class ProjectileFactory {
       dx,
       dy,
       size,
-      CollisionGroup.PlayerProjectile
+      CollisionGroup.PlayerProjectile,
     );
     this.scene.add(projectile);
   }
 }
 
-export { ProjectileFactory };
+export { ProjectileFactory, Projectile };

@@ -14,6 +14,7 @@ import { strongmanSheet } from '../resources/resources';
 import { State, States } from './player-anim-state';
 import { generateFramesByName, isTupleOfAtLeast } from '../utils/frames';
 import { MobilityComponent } from '../components/mobility';
+import { Projectile } from '../utils/projectile-factory';
 
 const stand = new Animation({
   frames: generateFramesByName(strongmanSheet, 0, 7, 'idle_').map((i) => ({
@@ -43,8 +44,9 @@ class StrongmanActor extends Actor {
   state: State = States.stand;
   timeInState = 0;
   name = 'strongman';
+  health = 5;
 
-  constructor({ x = 120, y = 120 }: { x?: number; y?: number } = {}) {
+  constructor({ x = 80, y = 100 }: { x?: number; y?: number } = {}) {
     super({
       x,
       y,
@@ -82,6 +84,15 @@ class StrongmanActor extends Actor {
     );
 
     this.graphics.material = outlineMaterial;
+    this.body.group = CollisionGroup.NonPlayer;
+    this.on('collisionstart', (e) => {
+      if (e.other.owner instanceof Projectile) {
+        this.health--;
+        if (this.health === 0) {
+          this.rotation = Math.PI / 2;
+        }
+      }
+    });
   }
 
   onPreUpdate() {

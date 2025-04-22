@@ -73,7 +73,7 @@ const PlayerAnimStateMachine = StateMachine.create(
         },
       },
       [States.ceilingsplat]: {
-        transitions: [States.apex],
+        transitions: [States.fall],
         onEnter({ data }) {
           data.timeInCurrentState = 0;
         },
