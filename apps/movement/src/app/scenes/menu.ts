@@ -8,6 +8,8 @@ import { ControllableComponent } from '../components/controllable';
 import { ComboSystem } from '../systems/combo';
 import { ProjectileFactory } from '../utils/projectile-factory';
 import { ParticleDisplayActor } from '../entities/particle-display-actor';
+import { AISystem } from '../systems/ai';
+import { AIBehavior } from '../components/ai-behavior';
 
 class MenuScene extends Scene {
   projectileFactory = new ProjectileFactory(this);
@@ -28,6 +30,7 @@ class MenuScene extends Scene {
     this.add(new Terrain({ x: 204, y: 100, width: 8, height: 140 }));
     this.world.add(new ControlSystem(this.world, this.engine.input, this));
     this.world.add(new ComboSystem(this.world, this.input));
+    this.world.add(AISystem);
 
     this.camera.strategy.elasticToActor(p, 0.8, 0.9);
     this.camera.strategy.radiusAroundActor(p, 48);
@@ -36,6 +39,7 @@ class MenuScene extends Scene {
     const strongmanControl = new ControllableComponent();
     strongmanControl.enabled = false;
     s.addComponent(strongmanControl);
+    s.addComponent(new AIBehavior());
     this.add(s);
     const dog = new DogActor();
     // this.add(dog);
