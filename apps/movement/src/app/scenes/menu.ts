@@ -1,8 +1,8 @@
 import { Scene, Timer } from 'excalibur';
 import { Terrain } from '../entities/level';
-import { PlayerActor } from '../entities/player';
+import { PlayerActor } from '../entities/clown/player';
 import { ControlSystem } from '../systems/control';
-import { StrongmanActor } from '../entities/strongman';
+import { StrongmanActor } from '../entities/strongman/strongman';
 import { DogActor } from '../entities/dog';
 import { ControllableComponent } from '../components/controllable';
 import { ComboSystem } from '../systems/combo';

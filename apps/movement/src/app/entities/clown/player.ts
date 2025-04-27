@@ -9,14 +9,14 @@ import {
   vec,
 } from 'excalibur';
 import { fragmentSource, vertexSource } from '@shader/outline';
-import { MobilityComponent } from '../components/mobility';
-import { TouchingComponent } from '../components/touching';
-import { CollisionGroup } from '../utils/collision';
-import { clownSheet } from '../resources/resources';
+import { MobilityComponent } from '../../components/mobility';
+import { TouchingComponent } from '../../components/touching';
+import { CollisionGroup } from '../../utils/collision';
+import { clownSheet } from '../../resources/resources';
 import { PlayerAnimStateMachine, State, States } from './player-anim-state';
-import { generateFramesByName, isTupleOfAtLeast } from '../utils/frames';
-import { ControllableComponent } from '../components/controllable';
-import { PieThrowAbility } from '../components/ability/pie';
+import { generateFramesByName, isTupleOfAtLeast } from '../../utils/frames';
+import { ControllableComponent } from '../../components/controllable';
+import { PieThrowAbility } from '../../components/ability/pie';
 
 const stand = new Animation({
   frames: generateFramesByName(clownSheet, 0, 5, 'stand_').map((i) => ({

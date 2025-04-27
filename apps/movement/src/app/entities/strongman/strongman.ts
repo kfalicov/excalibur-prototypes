@@ -5,16 +5,18 @@ import {
   CollisionType,
   Color,
   Engine,
+  Side,
   vec,
 } from 'excalibur';
 import { fragmentSource, vertexSource } from '@shader/outline';
-import { TouchingComponent } from '../components/touching';
-import { CollisionGroup } from '../utils/collision';
-import { strongmanSheet } from '../resources/resources';
-import { State, States } from './player-anim-state';
-import { generateFramesByName, isTupleOfAtLeast } from '../utils/frames';
-import { MobilityComponent } from '../components/mobility';
-import { Projectile } from '../utils/projectile-factory';
+import { TouchingComponent } from '../../components/touching';
+import { CollisionGroup } from '../../utils/collision';
+import { strongmanSheet } from '../../resources/resources';
+import { generateFramesByName, isTupleOfAtLeast } from '../../utils/frames';
+import { MobilityComponent } from '../../components/mobility';
+import { Projectile } from '../../utils/projectile-factory';
+import { States, StrongmanAnimStateMachine } from './strongman-anim-state';
+import { State } from '../clown/player-anim-state';
 
 const stand = new Animation({
   frames: generateFramesByName(strongmanSheet, 0, 7, 'idle_').map((i) => ({
@@ -41,7 +43,6 @@ const walk = new Animation({
 // }
 
 class StrongmanActor extends Actor {
-  state: State = States.stand;
   timeInState = 0;
   name = 'strongman';
   health = 5;
@@ -93,38 +94,54 @@ class StrongmanActor extends Actor {
         }
       }
     });
+    this.graphics.onPreDraw = () => {
+      if (Math.abs(this.body.vel.x) > 0.5) {
+        this.graphics.flipHorizontal = this.body.vel.x > 0;
+      }
+      switch (StrongmanAnimStateMachine.currentState.name) {
+        case States.stand:
+          stand.play();
+          this.graphics.use(stand);
+          break;
+        case States.walk:
+          walk.play();
+          this.graphics.use(walk);
+          break;
+        default:
+          console.log(
+            'unhandled state:',
+            StrongmanAnimStateMachine.currentState.name,
+          );
+      }
+    };
   }
 
-  onPreUpdate() {
-    if (Math.abs(this.body.vel.x) > 0.5) {
-      this.graphics.flipHorizontal = this.body.vel.x > 0;
-    }
-    //@ts-expect-error speed exists as long as the player always has an animation active
-    this.graphics.current.speed = 1;
+  set state(nextState: State) {
+    const success = StrongmanAnimStateMachine.go(nextState);
+    // console.log('went to', nextState, success);
+  }
 
+  onPostUpdate(engine: Engine, elapsed: number) {
+    const prevState = StrongmanAnimStateMachine.currentState.name;
+    StrongmanAnimStateMachine.update(elapsed);
+    StrongmanAnimStateMachine.data.timeInCurrentState++;
     const touching = this.get(TouchingComponent);
-    const nextState =
-      Math.abs(this.body.vel.x) > 10 ? States.walk : States.stand;
 
-    if (nextState !== this.state) this.timeInState = 0;
-    else this.timeInState += 1;
+    /**
+     * check any wall/floor collisions before the plain velocity checks
+     */
 
-    switch (nextState) {
-      case States.stand:
-        stand.play();
-        this.graphics.use(stand);
-        break;
-      case States.walk:
-        if (this.state !== States.walk) {
-          walk.goToFrame(2);
-        }
-        walk.play();
-        this.graphics.use(walk);
-        break;
-      default:
-        console.log('unhandled state:', nextState);
+    if (this.body.vel.y > 0) StrongmanAnimStateMachine.go(States.apex);
+    if (this.body.vel.y > 10) StrongmanAnimStateMachine.go(States.fall);
+
+    if (Math.abs(this.body.vel.x) > 10 && touching[Side.Bottom].size) {
+      if (prevState !== States.walk) {
+        walk.goToFrame(2);
+      }
+      StrongmanAnimStateMachine.go(States.walk);
+    } else if (touching[Side.Bottom].size) {
+      StrongmanAnimStateMachine.go(States.stand);
     }
-    this.state = nextState;
   }
 }
 

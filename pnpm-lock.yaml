@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  behaviortree:
+    specifier: 3.0.0-beta.1
+    version: 3.0.0-beta.1
   class-variance-authority:
     specifier: ^0.7.1
     version: 0.7.1
@@ -7671,6 +7674,12 @@ packages:
       tweetnacl: 0.14.5
     dev: true
 
+  /behaviortree@3.0.0-beta.1:
+    resolution: {integrity: sha512-svv3iOk4sF6zkIgA5TvzfhjskGZqEt5MTeh6ex+NFgO5+1iiPcNRxdWXnBkDexntrOLSFdqa85mtqK3doDn9KQ==}
+    dependencies:
+      core-js: 3.41.0
+    dev: false
+
   /big.js@5.2.2:
     resolution: {integrity: sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==}
     dev: true
@@ -8281,6 +8290,11 @@ packages:
     dependencies:
       browserslist: 4.24.3
     dev: true
+
+  /core-js@3.41.0:
+    resolution: {integrity: sha512-SJ4/EHwS36QMJd6h/Rg+GyR4A5xE0FSI3eZ+iBVpfqf1x0eTSg1smWLHrA+2jQThZSh97fmSgFSU8B61nxosxA==}
+    requiresBuild: true
+    dev: false
 
   /core-util-is@1.0.2:
     resolution: {integrity: sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==}
