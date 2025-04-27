@@ -98,56 +98,25 @@ class ControlSystem extends System {
       const touching = entity.get(TouchingComponent);
       const grounded = (touching?.Bottom.size ?? 0) > 0;
 
-      const acc = this.computeAcceleration(mobility, intent);
-      acc.y = mobility.gravity;
-      // grounded ? (acc.y = 0) : (acc.y = mobility.gravity);
-
-      body.acc = acc;
-      let x = body.vel.x;
-      let y = body.vel.y;
-      mobility.aiming = false;
-
       if (grounded) {
-        /**
-         * reset midair jumps, apply ground friction
-         */
         mobility.midairJumpsUsed = 0;
-        x *= mobility.damp.x;
       }
       if (intent.Jump && !this.previousIntent.Jump) {
         if (grounded) {
           entity.state = 'prejump';
-          y = -mobility.jump;
         } else if (mobility.midairJumpsUsed < mobility.maxMidairJumps) {
           entity.state = 'jump';
-          // entity.state = 'prejump';
-          y = -mobility.jump;
         }
+        mobility.jump();
       }
 
-      x = clamp(x, -mobility.max.x, mobility.max.x);
-      body.vel = new Vector(x, y);
+      mobility.compute(intent);
+      mobility.aiming = false;
     }
 
     this.previousIntent = intent;
   }
 
-  /**
-   * compute movement that should be applied to the body
-   * based on the user's intent and the mobility properties
-   */
-  private computeAcceleration(
-    mobility: MobilityComponent,
-    intent: Record<keyof typeof this.controls, boolean>,
-  ) {
-    //the horizontal intent
-    const x = (intent.Right ? 1 : 0) - (intent.Left ? 1 : 0);
-    //the vertical intent
-    const y = (intent.Down ? 1 : 0) - (intent.Up ? 1 : 0);
-    const acc = new Vector(x * mobility.acc.x, y * mobility.acc.y);
-
-    return acc;
-  }
 
   isHeld(control: keyof typeof this.controls) {
     const [key, button, axis] = this.controls[control];

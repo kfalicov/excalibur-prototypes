@@ -111,6 +111,7 @@ class PlayerActor extends Actor {
     this.graphics.material = outlineMaterial;
 
     this.graphics.onPreDraw = () => {
+      console.log(this.body.vel.x);
       /**
        * set the offset of the graphics back to nothing.
        * TODO this will eventually be per-frame to assist with animation
@@ -140,7 +141,7 @@ class PlayerActor extends Actor {
         case States.walk:
           {
             const percentOfMax = Math.abs(this.body.vel.x) / mobility.max.x;
-            walk.speed = 0.5 + percentOfMax * 1.5;
+            walk.speed = 0.25 + percentOfMax;
             this.graphics.use(walk);
           }
           break;
