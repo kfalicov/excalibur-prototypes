@@ -1,37 +1,24 @@
-import {
-  Color,
-  DefaultLoader,
-  Engine,
-  ImageSource,
-  SpriteSheet,
-} from 'excalibur';
+import { Color, DefaultLoader, Engine, ImageSource, ImageWrapping, SpriteSheet } from 'excalibur';
 
 import loaderImg from '../../assets/loader.png';
-import clownSrc from '../../assets/clown/spritesheet.png';
-import clownViews from '../../assets/clown/sourceviews.json';
-import dogSrc from '../../assets/dog.png';
-import dogViews from '../../assets/dog.json';
-import strongmanSrc from '../../assets/strongman.png';
-import strongmanViews from '../../assets/strongman.json';
-import pie_sm from '../../assets/projectile/pie_0.png';
-import pie_md from '../../assets/projectile/pie_1.png';
-import pie_lg from '../../assets/projectile/pie_2.png';
+import arthurSrc from '../../assets/arthur/spritesheet.png';
+import arthurViews from '../../assets/arthur/sourceviews.json';
+
+import skybox from '../../assets/background/1.png';
+import cloud from '../../assets/background/2.png';
+import hills from '../../assets/background/3.png';
+import trees from '../../assets/background/4.png';
 
 /**
  * TODO move these to a spritesheet for the pie ability or the base clown sheet
  */
-import windupSrc from '../../assets/clown/throw_0.png';
-import throwSrc from '../../assets/clown/throw_1.png';
 
 const Resources = {
-  clown: new ImageSource(clownSrc),
-  windup: new ImageSource(windupSrc),
-  toss: new ImageSource(throwSrc),
-  dog: new ImageSource(dogSrc),
-  strongman: new ImageSource(strongmanSrc),
-  pie_sm: new ImageSource(pie_sm),
-  pie_md: new ImageSource(pie_md),
-  pie_lg: new ImageSource(pie_lg),
+  arthur: new ImageSource(arthurSrc),
+  skybox: new ImageSource(skybox, { wrapping: ImageWrapping.Repeat }),
+  cloud: new ImageSource(cloud, { wrapping: ImageWrapping.Repeat }),
+  hills: new ImageSource(hills, { wrapping: ImageWrapping.Repeat }),
+  trees: new ImageSource(trees, { wrapping: ImageWrapping.Repeat }),
 } as const;
 
 const loaderSprite = new Image();
@@ -129,7 +116,7 @@ class CustomLoader extends DefaultLoader {
   }
 
   override async onUserAction(): Promise<void> {
-    const { resolve, reject, promise } = Promise.withResolvers<void>();
+    const { resolve, promise } = Promise.withResolvers<void>();
     const canvasElement = this.engine.canvas;
     const listener = () => {
       this.canvas.flagDirty();
@@ -143,21 +130,13 @@ class CustomLoader extends DefaultLoader {
 
 const loader = new CustomLoader();
 
-const clownSheet = SpriteSheet.fromImageSourceWithSourceViews({
-  image: Resources.clown,
-  sourceViews: clownViews,
-});
-const dogSheet = SpriteSheet.fromImageSourceWithSourceViews({
-  image: Resources.dog,
-  sourceViews: dogViews,
-});
-const strongmanSheet = SpriteSheet.fromImageSourceWithSourceViews({
-  image: Resources.strongman,
-  sourceViews: strongmanViews,
+const arthurSheet = SpriteSheet.fromImageSourceWithSourceViews({
+  image: Resources.arthur,
+  sourceViews: arthurViews,
 });
 
 for (const res in Resources) {
   loader.addResource(Resources[res as keyof typeof Resources]);
 }
 
-export { Resources, loader, clownSheet, dogSheet, strongmanSheet };
+export { Resources, loader, arthurSheet };

@@ -1,4 +1,4 @@
-import { Actor, BodyComponent, clamp, Component, Entity, vec, Vector } from 'excalibur';
+import { Actor, clamp, Component, vec, Vector } from 'excalibur';
 
 type Intent = {
   Left: boolean;
@@ -16,13 +16,10 @@ class MobilityComponent extends Component {
   // terminal velocity
   max = new Vector(60, 400);
   // multiplier on velocity allowed while sprinting
-  sprint = 2;
+  sprint = 1.5;
   damp = { x: 0.92, y: 1 };
   _jump = 300;
-  /**
-   * the delay in frames before the jump executes
-   */
-  jumpDelay = 3;
+  sprinting: boolean = false;
   aiming: boolean = false;
   /**
    * the maximum number of midair jumps available to the entity
@@ -40,17 +37,27 @@ class MobilityComponent extends Component {
   }
 
   onAdd(owner: Actor) {
-    owner.on('postupdate',()=>{
+    owner.on('postupdate', () => {
       /**
        * a hack to update the MotionSystem's inability to handle terminal velocity
        */
       // console.log("actual velocity",owner.body.vel);
+      const sprintModifier = this.sprinting ? this.sprint : 1;
       owner.body.vel = vec(
-        clamp(owner.body.vel.x, -this.max.x, this.max.x),
-        clamp(owner.body.vel.y, -this.max.y, this.max.y));
+        clamp(
+          owner.body.vel.x,
+          -this.max.x * sprintModifier,
+          this.max.x * sprintModifier,
+        ),
+        clamp(
+          owner.body.vel.y,
+          -this.max.y * sprintModifier,
+          this.max.y * sprintModifier,
+        ),
+      );
       // console.log("desired velocity",owner.body.vel)
       // owner.body.pos = owner.body.oldPos.add(owner.body.vel);
-    })
+    });
   }
 
   compute(intent: Intent) {
@@ -60,18 +67,20 @@ class MobilityComponent extends Component {
     if (!intent.Left && !intent.Right) {
       this.owner.body.vel.x *= this.damp.x;
     }
+    const sprintModifier = this.sprinting ? this.sprint : 1;
     //the horizontal intent
     const x = (intent.Right ? 1 : 0) - (intent.Left ? 1 : 0);
     //the vertical intent
     const y = (intent.Down ? 1 : 0) - (intent.Up ? 1 : 0);
     const climbing = false;
     const acc = new Vector(
-      x * this.acc.x,
+      x * this.acc.x * sprintModifier,
       climbing ? y * this.acc.y : this.gravity,
     );
 
     this.owner.body.acc = acc;
   }
+
   jump() {
     if (!this.owner) {
       throw 'Ownerless MobilityComponent encountered!';

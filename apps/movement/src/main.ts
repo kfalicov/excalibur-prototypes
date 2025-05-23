@@ -45,7 +45,7 @@ const game = new Engine({
   fixedUpdateFps: 60,
 });
 
-game.showDebug(true);
+// game.showDebug(true);
 
 /**
  * we don't care about the resize event, we only care about the performant callback

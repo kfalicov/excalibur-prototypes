@@ -1,15 +1,19 @@
-import { Scene, Timer } from 'excalibur';
+import { Actor, ParallaxComponent, Scene, vec } from 'excalibur';
 import { Terrain } from '../entities/level';
 import { PlayerActor } from '../entities/clown/player';
 import { ControlSystem } from '../systems/control';
-import { StrongmanActor } from '../entities/strongman/strongman';
-import { DogActor } from '../entities/dog';
 import { ControllableComponent } from '../components/controllable';
 import { ComboSystem } from '../systems/combo';
 import { ProjectileFactory } from '../utils/projectile-factory';
-import { ParticleDisplayActor } from '../entities/particle-display-actor';
 import { AISystem } from '../systems/ai';
-import { AIBehavior } from '../components/ai-behavior';
+import { Resources } from '../resources/resources';
+
+const parallaxLayers = [
+  Resources.skybox,
+  Resources.cloud,
+  Resources.hills,
+  Resources.trees,
+];
 
 class MenuScene extends Scene {
   projectileFactory = new ProjectileFactory(this);
@@ -19,7 +23,21 @@ class MenuScene extends Scene {
     if (!gl) throw new Error('WebGL2 not supported');
     // new Shader({ fragmentSource, vertexSource, gl });
 
-    this.add(new ParticleDisplayActor(120, 60));
+    for (let i = 0; i < parallaxLayers.length; i++) {
+      const layer = parallaxLayers[i]!;
+      const bg = new Actor({ x: 0, y: -20 });
+      bg.scale = vec(0.5, 0.5);
+      bg.graphics.anchor = vec(0.5, 0.5);
+      bg.graphics.use(
+        layer.toSprite({
+          sourceView: { x: 0, y: 0, width: 1024, height: 324 },
+        }),
+      );
+      bg.addComponent(
+        new ParallaxComponent(vec(0.015 + 0.25 * i, 0.015 + 0.05 * i)),
+      );
+      this.add(bg);
+    }
 
     const p = new PlayerActor();
     p.body.enableFixedUpdateInterpolate = false;
@@ -35,40 +53,12 @@ class MenuScene extends Scene {
     this.camera.strategy.elasticToActor(p, 0.8, 0.9);
     this.camera.strategy.radiusAroundActor(p, 48);
 
-    const s = new StrongmanActor();
-    const strongmanControl = new ControllableComponent();
-    strongmanControl.enabled = false;
-    s.addComponent(strongmanControl);
-    s.addComponent(new AIBehavior());
-    this.add(s);
-    const dog = new DogActor();
-    // this.add(dog);
-
-    s.on('pointerdown', () => {
-      s.get(ControllableComponent).enabled = true;
-      p.get(ControllableComponent).enabled = false;
-      for (const strategy of this.camera._cameraStrategies) {
-        strategy.target = s;
-      }
-    });
     p.on('pointerdown', () => {
       p.get(ControllableComponent).enabled = true;
-      s.get(ControllableComponent).enabled = false;
       for (const strategy of this.camera._cameraStrategies) {
         strategy.target = p;
       }
     });
-
-    const timer = new Timer({
-      fcn: () => {
-        dog.acc.x = p.pos.x > dog.pos.x ? 10 : -10;
-      },
-      randomRange: [250, 500],
-      interval: 500,
-      repeats: true,
-    });
-    this.add(timer);
-    timer.start();
   }
 }
 

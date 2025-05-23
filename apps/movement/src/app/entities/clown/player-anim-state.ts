@@ -47,7 +47,7 @@ const PlayerAnimStateMachine = StateMachine.create(
           );
         },
       },
-      [States.run]: { transitions: [States.wallsplat] },
+      [States.run]: { transitions: ['*'] },
       [States.idle]: { transitions: [] },
       [States.prejump]: {
         transitions: [States.jump],
@@ -55,7 +55,7 @@ const PlayerAnimStateMachine = StateMachine.create(
           data.timeInCurrentState = 0;
         },
         onUpdate: (data) => {
-          if (data.timeInCurrentState > 2) {
+          if (data.timeInCurrentState > 3) {
             PlayerAnimStateMachine.go(States.jump);
           }
         },
@@ -67,7 +67,7 @@ const PlayerAnimStateMachine = StateMachine.create(
           data.timeInCurrentState = 0;
         },
         onUpdate: (data) => {
-          if (data.timeInCurrentState > 2) {
+          if (data.timeInCurrentState > 5) {
             PlayerAnimStateMachine.go(States.rise);
           }
         },
